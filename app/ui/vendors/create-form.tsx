@@ -15,7 +15,7 @@ export default function Form() {
       <div className="rounded-md bg-gray-50 p-4 md:p-6">
         <div className="mb-4">
           <label htmlFor="amount" className="mb-2 block text-sm font-medium">
-            Vendor's name
+            Vendor name
           </label>
           <div className="relative mt-2 rounded-md">
             <div className="relative">

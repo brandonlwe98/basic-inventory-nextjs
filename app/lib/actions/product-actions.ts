@@ -91,7 +91,11 @@ export async function createProduct(prevState: ProductState, formData: FormData)
         const buffer = Buffer.from(bytes);
         
         // create the product image dir if not exist
-        const makingDir = await fs.promises.mkdir(`${join('public', 'product_images', vendorId)}`, { recursive: true});
+        const makingDir = await fs.promises.mkdir(`${join('product_images', vendorId)}`, { recursive: true}).catch(
+            (err) => {
+                throw err;
+            }
+        )
 
         await fs.writeFile(join('public', imagePath), buffer, ((err) => { // write the image file to the path
             if (err) {
@@ -164,7 +168,7 @@ export async function deleteProduct(id: string) {
             WHERE id = ${id}`;
 
         // remove product image from directory
-        const pathToRemove = join('public', image_path.rows[0]?.image_url);
+        const pathToRemove = join(image_path.rows[0]?.image_url);
         await fs.unlink(pathToRemove, ((err) => {
             console.log("Unlinked product image file with id", id);
             if (err) {
@@ -172,11 +176,11 @@ export async function deleteProduct(id: string) {
                 throw err;
             }
         }));
-    } catch (error) {
+    } catch (error: any) {
         console.error("Failed to delete product", error);
         revalidatePath('/dashboard/products');
         return {
-            errorMessage: createDatabaseErrorMsg(`Failed to delete product. `),
+            errorMessage: createDatabaseErrorMsg(`Failed to delete product. ${error.message}`),
         };
     }
 
@@ -195,7 +199,7 @@ export async function deleteProductsByVendor(vendorId: string) {
 
         await Promise.all(
             products.rows.map(async (product) => {
-                const pathToRemove = join('public', product.image_url);
+                const pathToRemove = join(product.image_url);
                 await fs.promises.unlink(pathToRemove).catch(((err) => {
                     console.log("Unlinked product image file with id", product.id);
                     if (err) {
@@ -210,10 +214,10 @@ export async function deleteProductsByVendor(vendorId: string) {
           }));
 
         
-    } catch (error) {
+    } catch (error: any) {
         console.error("Failed to delete products by vendor", error);
         return {
-            errorMessage: createDatabaseErrorMsg(`Failed to delete vendor products. `),
+            errorMessage: createDatabaseErrorMsg(`Failed to delete vendor products. ${error.message}`),
         };
     }
 

@@ -16,6 +16,9 @@
 /.next/
 /out/
 
+# db
+/db.config.ts
+
 # production
 /build
 

@@ -1,15 +1,15 @@
 'use server';
  
 import { z } from 'zod';
-import { sql } from '@vercel/postgres';
+// import { sql } from '@vercel/postgres';
 import { revalidatePath } from 'next/cache';
 import { createDatabaseErrorMsg } from '../utils';
 import { redirect } from 'next/navigation';
-import { Product, Vendor } from '../definitions';
+// import { Product, Vendor } from '../definitions';
 import { unstable_noStore as noStore } from 'next/cache';
-import { deleteProduct, deleteProductsByVendor } from './product-actions';
-import { join } from 'path';
-import fs from 'fs';
+import { deleteProductsByVendor } from './product-actions';
+import { pool } from '@/db.config';
+const {escapeIdentifier} = require('pg');
 
 const VendorSchema = z.object({
     id: z.string(),
@@ -46,10 +46,7 @@ export async function createVendor(prevState: VendorState, formData: FormData) {
     const { vendorName } = validatedFields.data;
 
     try {
-        const existingVendor = await sql<Vendor>`
-        SELECT * FROM vendors
-        WHERE name = ${vendorName}
-        `;
+        const existingVendor = await pool.query(`SELECT * FROM vendors WHERE name = '${vendorName}'`);
 
         if (existingVendor.rows.length > 0) {
             console.log("Vendor already exists for => ", existingVendor.rows);
@@ -58,15 +55,15 @@ export async function createVendor(prevState: VendorState, formData: FormData) {
                 errors: { vendorName: ['[Create Vendor] name already exists!']}
             };
         } else {
-            await sql`
-            INSERT INTO vendors (name, created_at, updated_at)
-            VALUES (${vendorName}, localtimestamp, localtimestamp)`;
+            await pool.query(
+                `INSERT INTO vendors (name, created_at, updated_at) VALUES ('${vendorName}', localtimestamp, localtimestamp)`
+            );
         }
 
     } catch (error) {
         console.error("Failed to create vendor", error);
         return {
-            errorMessage: createDatabaseErrorMsg('Failed to create vendor.'),
+            errorMessage: createDatabaseErrorMsg(`Failed to create vendor. Please make sure there are no special characters (/\'$!,)`),
         };
     }
 
@@ -76,11 +73,11 @@ export async function createVendor(prevState: VendorState, formData: FormData) {
 
 export async function getVendorProductCount(id: string) {
     try {
-        const totalProducts = await sql`
+        const totalProducts = await pool.query(`
                 SELECT COUNT(*)
                 FROM products p
                 JOIN vendors v ON p.vendor_id::integer = v.id::integer
-                WHERE v.id = ${id}`;
+                WHERE v.id = ${id}`);
         
         return String(totalProducts.rows[0].count);
     } catch (err) {
@@ -110,10 +107,10 @@ export async function updateVendor(id: string, prevState: VendorState, formData:
 
     try {
 
-        const existingVendor = await sql<Vendor>`
+        const existingVendor = await pool.query(`
         SELECT * FROM vendors
-        WHERE name = ${vendorName}
-        `;
+        WHERE name = '${vendorName}'
+        `);
 
         if (existingVendor.rows.length > 0) {
             console.log("[Update Vendor] already exists for => ", existingVendor.rows);
@@ -122,11 +119,11 @@ export async function updateVendor(id: string, prevState: VendorState, formData:
                 errors: { vendorName: ['Vendor name already exists!']}
             };
         } else {
-            await sql`
+            await pool.query(`
             UPDATE vendors
-            SET name = ${vendorName}, updated_at = localtimestamp
+            SET name = '${vendorName}', updated_at = localtimestamp
             WHERE id = ${id}
-        `;
+            `);
         }
 
     } catch (error) {
@@ -142,19 +139,19 @@ export async function updateVendor(id: string, prevState: VendorState, formData:
 
 export async function deleteVendor(id: string) {
     try {
-        await sql`
+        await pool.query(`
         DELETE FROM vendors 
-        WHERE id = ${id}`;
+        WHERE id = ${id}`);
         
         await deleteProductsByVendor(id);
 
         // remove vendor image directory
-        await fs.promises.rmdir(join('/product_images', id.toString())).catch(
-            (err) => {
-                console.error("Failed to remove vendor image directory", err);
-                throw new Error(`Failed to delete vendor. Failed to remove vendor image directory. ${err.message}`, err);
-            }
-        )
+        // await fs.promises.rmdir(join('/product_images', id.toString())).catch(
+        //     (err) => {
+        //         console.error("Failed to remove vendor image directory", err);
+        //         throw new Error(`Failed to delete vendor. Failed to remove vendor image directory. ${err.message}`, err);
+        //     }
+        // )
 
     } catch (error: any) {
         console.error("Failed to delete vendor", error);

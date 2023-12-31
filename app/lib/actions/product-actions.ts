@@ -2,12 +2,15 @@
  
 import { z } from 'zod';
 import fs from 'fs';
-import { sql } from '@vercel/postgres';
+// import { sql } from '@vercel/postgres';
+import { pool } from '@/db.config';
 import { revalidatePath } from 'next/cache';
 import { createDatabaseErrorMsg } from '../utils';
 import { redirect } from 'next/navigation';
 import { unstable_noStore as noStore } from 'next/cache';
-import path, { join } from 'path';
+import { Product, ProductImage } from '../definitions';
+import { v4 as uuidv4 } from 'uuid';
+import path from 'path';
 
 const MAX_FILE_SIZE = 1024 * 1024 * 5;
 const allowedFileTypes = ["image/jpeg", "image/png", "image/jpg", "image/svg"];
@@ -72,57 +75,50 @@ export async function createProduct(prevState: ProductState, formData: FormData)
 
     const { productName, imageURL, vendorId, barcode, quantity, unit } = validatedFields.data;
 
-    const image : File = imageURL as File;
+    // console.log("IMAGE URL", imageURL);
+    // var buffer = await Buffer.from(JSON.stringify(imageURL)); // imageURL returns a File Object
+    // const imageBlob : Blob = new Blob([imageURL], { type: imageURL.type});
+    // const imageBuffer = await imageBlob.arrayBuffer();
+    // console.log("IMG BUFFER", imageBuffer);
+    // const bytea : any = new Uint8Array(imageBuffer);
+    // console.log("BYTE ARRAY", bytea);
 
     const formattedQuantity = quantity * 100;
 
-    var insertedProduct = null;
-
     try {
-        insertedProduct = await sql`
-            INSERT INTO products (vendor_id, name, barcode, quantity, unit, created_at, updated_at)
-            VALUES (${vendorId}, ${productName}, ${barcode}, ${formattedQuantity}, ${unit}, localtimestamp, localtimestamp)
-            RETURNING id;
-        `;
-
-        const productId = insertedProduct.rows[0].id;
+        // const res = await pool.query(
+        //     `INSERT INTO product_images (product_id, image_byte, type) VALUES (1, '${bytea.toString()}', '${imageURL.type}')
+        //     RETURNING *`
+        // );
+        // console.log(res.rows);
         // create image path (e.g. /product_images/1/1.png)
-        const imagePath = `/product_images/${vendorId}/${productId}${path.extname(imageURL.name)}`;
+        const imageExt = path.extname(imageURL.name);
+        const uniqueImageCode = uuidv4();
 
+        // construct file path with .ext
+        const imagePath = `/product_images/${uniqueImageCode}${imageExt}`;
+        const actualFilePath = path.join(process.cwd(), `public${imagePath}`);
+
+        // get buffer from file upload
         const bytes = await imageURL.arrayBuffer();
         const buffer = Buffer.from(bytes);
-        
-        // create the product image dir if not exist
-        const makingDir = await fs.promises.mkdir(`${join('/product_images', vendorId)}`, { recursive: true}).catch(
-            ((err) => { 
-                if (err) {
-                    console.error("Error creating product image directory", err);
-                    throw new Error(`Failed to create product. Error creating product image directory. ${err.message}`, err);
-                }
-            })
-        )
 
-        // write the image file to the path
-        await fs.promises.writeFile(join(imagePath), buffer).catch(
-            ((err) => { 
+        await fs.promises.writeFile(actualFilePath, buffer).catch(
+            (err) => {
                 if (err) {
-                    console.error("Error writing image to file", err);
-                    throw new Error(`Failed to create product. Error saving product image to file. ${err.message}`, err);
+                    throw new Error(`Failed to write image into local directory. ${err.message}`);
                 }
-            })
-        )
+            }
+        );
 
-        await sql`
-            UPDATE products
-            SET image_url=${imagePath}
-            WHERE id=${productId}
-            `
+        const queryString = (`
+            INSERT INTO products (vendor_id, name, image, barcode, quantity, unit, created_at, updated_at)
+            VALUES (${vendorId}, '${productName}', '${imagePath}', '${barcode}', ${formattedQuantity}, '${unit}', localtimestamp, localtimestamp)
+            RETURNING id;
+        `);
+
+        await pool.query(queryString);
     } catch (error : any) {
-        // rollback product insertion if happened
-        if (insertedProduct?.rows) {
-            await sql`DELETE FROM products WHERE id = ${insertedProduct?.rows[0]?.id};`;
-        }
-
         console.error("Error creating product: ", error);
         return {
             errorMessage: error.message
@@ -156,11 +152,10 @@ export async function updateProduct(id: string, prevState: ProductState, formDat
     const formattedQuantity = quantity * 100;
 
     try {
-        await sql`
-            UPDATE products
-            SET name = ${productName}, vendor_id = ${vendorId}, barcode = ${barcode}, quantity = ${formattedQuantity}, unit = ${unit}, updated_at = localtimestamp
-            WHERE id = ${id}
-        `;
+        await pool.query(
+            `UPDATE products SET name = '${productName}', vendor_id = ${vendorId}, barcode = '${barcode}', quantity = ${formattedQuantity}, unit = '${unit}', updated_at = localtimestamp
+            WHERE id = ${id}`)
+        ;
     } catch (error) {
         console.error("Failed to update product", error);
         return {
@@ -174,21 +169,17 @@ export async function updateProduct(id: string, prevState: ProductState, formDat
 
 export async function deleteProduct(id: string) {
     try {
-        const image_path = await sql`SELECT image_url FROM products
-        WHERE id = ${id}`;
-        
-        await sql`DELETE FROM products 
-            WHERE id = ${id}`;
+        const product = await pool.query(`SELECT * FROM products WHERE id = ${id}`);
 
-        // remove product image from directory
-        const pathToRemove = join(image_path.rows[0]?.image_url);
-        await fs.unlink(pathToRemove, ((err) => {
-            console.log("Unlinked product image file with id", id);
+        const actualFilePath = path.join(process.cwd(), `public${product.rows[0].image}`);
+        console.log("actual file path", actualFilePath);
+        await fs.promises.unlink(actualFilePath).catch(((err) => {
             if (err) {
-                console.error("Error removing product image file from directory", err)
-                throw err;
+                throw new Error("Error removing product image from local directory", err);
             }
         }));
+
+        await pool.query(`DELETE FROM products WHERE id = ${id}`);
     } catch (error: any) {
         console.error("Failed to delete product", error);
         revalidatePath('/dashboard/products');
@@ -205,26 +196,24 @@ export async function deleteProductsByVendor(vendorId: string) {
     try {
         console.log("Deleting vendor products with vendor id" ,vendorId);
 
-        const products = await sql
-        `SELECT * 
-        FROM products 
-        WHERE vendor_id = ${vendorId}`;
+        const products = await pool.query(`SELECT * FROM products WHERE vendor_id = '${vendorId}'`);
 
         await Promise.all(
-            products.rows.map(async (product) => {
-                const pathToRemove = join(product.image_url);
+            products.rows.map(async (product : Product) => {
+                const pathToRemove = path.join(process.cwd(), `public${product.image}`);
                 await fs.promises.unlink(pathToRemove).catch(((err) => {
                     console.log("Unlinked product image file with id", product.id);
                     if (err) {
                         console.error("Error removing product image file from directory", err)
-                        throw err;
+                        throw new Error("Failed to remove product image of vendor", err);
                     }
                 }))
 
-                return sql`
-                DELETE FROM products
-                WHERE id = ${product.id}`;
-          }));
+                return pool.query(`DELETE FROM products WHERE id = ${product.id}`);
+          })
+          ).catch((err) => {
+                if (err) throw err;
+            });
 
         
     } catch (error: any) {
@@ -236,3 +225,23 @@ export async function deleteProductsByVendor(vendorId: string) {
 
     revalidatePath('/dashboard/products');
 }
+
+// export async function getProductImage(id: string) {
+//     try {
+//         console.log("Retrieving product img");
+
+//         const res = await pool.query(`SELECT * from product_images WHERE id = 2`);
+
+//         const productImg : ProductImage = res.rows?.[0];
+//         console.log("Product res", productImg);
+//         console.log("RETURNING BYTEA", productImg.image_byte);
+//         // return productImg.rows[0]?.image_byte;
+//         const blob = new Blob([productImg?.image_byte], {type: productImg.type});
+//         const imgUrl = URL.createObjectURL(blob);
+//         console.log("BLOB IS ", blob);
+//         return imgUrl;
+//     } catch (error: any) {
+//         console.error(" Failed to retrieve product image from database", error);
+//         return '';
+//     }
+// }

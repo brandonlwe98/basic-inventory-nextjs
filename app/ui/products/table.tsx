@@ -2,6 +2,7 @@ import Image from 'next/image';
 import { fetchFilteredProducts } from '@/app/lib/data/product-data';
 import { DeleteProduct, UpdateProduct } from './buttons';
 import { formatQuantity } from '@/app/lib/utils';
+import { ProductTable } from '@/app/lib/definitions';
 
 export default async function ProductsTable({
   query,
@@ -17,7 +18,7 @@ export default async function ProductsTable({
       <div className="inline-block min-w-full align-middle">
         <div className="rounded-lg bg-gray-50 p-2 md:pt-0">
           <div className="md:hidden">
-            {products?.map((product) => (
+            {products?.map((product: ProductTable) => (
               <div
                 key={product.id}
                 className="mb-2 w-full rounded-md bg-white p-4"
@@ -32,9 +33,9 @@ export default async function ProductsTable({
                 </div>
                 <div className="flex w-full items-center justify-between pt-4">
                   <div>
-                    {product.image_url &&
+                    {product.image &&
                       <Image
-                        src={product.image_url}
+                        src={product.image}
                         className="mr-2"
                         width={35}
                         height={35}
@@ -84,7 +85,7 @@ export default async function ProductsTable({
               </tr>
             </thead>
             <tbody className="bg-white">
-              {products?.map((product) => (
+              {products?.map((product: ProductTable) => (
                 <tr
                   key={product.id}
                   className="w-full border-b py-3 text-sm last-of-type:border-none [&:first-child>td:first-child]:rounded-tl-lg [&:first-child>td:last-child]:rounded-tr-lg [&:last-child>td:first-child]:rounded-bl-lg [&:last-child>td:last-child]:rounded-br-lg"
@@ -95,14 +96,14 @@ export default async function ProductsTable({
                     </div>
                   </td>
                   <td className="whitespace-nowrap px-3 py-3">
-                    {product.image_url &&
+                    {product.image &&
                       <Image
-                      src={product.image_url}
-                      className=""
-                      width={64}
-                      height={64}
-                      alt={`${product.name} picture`}
-                    />}
+                        width={64}
+                        height={64}
+                        alt={`${product.name} Product`}
+                        src={product.image}
+                      />
+                    }
 
                   </td>
                   <td className="whitespace-nowrap px-3 py-3">

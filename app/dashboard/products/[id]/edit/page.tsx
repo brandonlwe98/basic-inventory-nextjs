@@ -10,7 +10,7 @@ export default async function Page({ params } : {params: { id: string }}) {
         fetchVendors(),
         fetchProductById(id),
     ]);
-
+    
     if (!product) {
         notFound();
     }

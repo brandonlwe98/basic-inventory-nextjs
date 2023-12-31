@@ -18,7 +18,7 @@ export default function Form(
   const initialState = { errorMessage: '', errors: {}};
   const updateProductWithId = updateProduct.bind(null, product.id);
   const [state, dispatch] = useFormState(updateProductWithId, initialState);
-  const [previewImage, setPreviewImage] = useState<string | null>(product.image_url);
+  const [previewImage, setPreviewImage] = useState<string | null>(product.image);
   const { pending } = useFormStatus();
   
   const deleteProductHandler = () => {

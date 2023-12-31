@@ -53,7 +53,7 @@ export default function Form({ vendors }: { vendors: VendorField[] }) {
             ))}
           </div>
         </div>
-
+        
         {/* {Product Name} */}
         <div className="mb-4">
           <label htmlFor="amount" className="mb-2 block text-sm font-medium">

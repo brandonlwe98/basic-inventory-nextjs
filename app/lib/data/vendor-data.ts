@@ -1,6 +1,7 @@
-import { sql } from '@vercel/postgres';
+// import { sql } from '@vercel/postgres';
 import { unstable_noStore as noStore } from 'next/cache';
 import { Vendor } from '../definitions';
+import { pool } from '@/db.config';
 
 const ITEMS_PER_PAGE = 6;
 
@@ -8,11 +9,7 @@ export async function fetchVendors() {
     noStore();
 
     try {
-        const data = await sql<Vendor>`
-        SELECT id, name, created_at, updated_at
-        FROM vendors
-        ORDER BY name ASC
-        LIMIT 5`;
+        const data = await pool.query('SELECT id, name, created_at, updated_at FROM vendors ORDER BY name ASC LIMIT 5');
 
         return data.rows;
     } catch (error) {
@@ -25,13 +22,10 @@ export async function fetchVendorsPages(query: string) {
     noStore();
     
     try {
-      const count = await sql`SELECT COUNT(*)
-      FROM vendors
-      WHERE
-        name ILIKE ${`%${query}%`} OR
-        created_at::text ILIKE ${`%${query}%`} OR
-        updated_at::text ILIKE ${`%${query}%`}
-    `;
+      const count = await pool.query(
+        "SELECT COUNT(*) FROM vendors WHERE name ILIKE $1 OR created_at::text ILIKE $1 OR updated_at::text ILIKE $1",
+        [`%${query}%`,]
+      )
   
       const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
       return totalPages;
@@ -50,20 +44,8 @@ export async function fetchFilteredVendors(
     noStore();
     
     try {
-      const vendors = await sql<Vendor>`
-        SELECT
-          id,
-          name,
-          created_at,
-          updated_at
-        FROM vendors
-        WHERE
-          name ILIKE ${`%${query}%`} OR
-          created_at::text ILIKE ${`%${query}%`} OR
-          updated_at::text ILIKE ${`%${query}%`}
-        ORDER BY updated_at DESC
-        LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
-      `;
+      const vendors = await pool.query('SELECT id, name, created_at, updated_at FROM vendors WHERE name ILIKE $1 OR created_at::text ILIKE $1 OR updated_at::text ILIKE $1 ORDER BY updated_at DESC LIMIT $2 OFFSET $3',
+      [`%${query}%`, ITEMS_PER_PAGE, offset]);
   
       return vendors.rows;
     } catch (error) {
@@ -76,15 +58,7 @@ export async function fetchVendorById(id: string) {
     noStore();
     
     try {
-      const data = await sql<Vendor>`
-        SELECT
-          id,
-          name,
-          created_at,
-          updated_at
-        FROM vendors
-        WHERE id = ${id};
-      `;
+      const data = await pool.query('SELECT id, name, created_at, updated_at FROM vendors WHERE id = $1', [id]);
   
       return data.rows[0];
     } catch (error) {

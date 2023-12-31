@@ -4,7 +4,7 @@
 // However, these types are generated automatically if you're using an ORM such as Prisma.
 export type User = {
   id: string;
-  name: string;
+  username: string;
   password: string;
 };
 
@@ -26,7 +26,7 @@ export type Product = {
   id: string;
   vendor_id: string;
   name: string;
-  image_url: string;
+  image: string;
   barcode: string;
   quantity: number;
   unit: string;
@@ -34,12 +34,19 @@ export type Product = {
   updated_at: string;
 }
 
+export type ProductImage = {
+  id: string;
+  product_id: string;
+  image_byte: Uint8Array;
+  type: string;
+}
+
 export type ProductTable = {
   id: string;
   vendor_id: string;
   vendor_name: string;
   name: string;
-  image_url: string;
+  image: string;
   barcode: string;
   quantity: number;
   unit: string;

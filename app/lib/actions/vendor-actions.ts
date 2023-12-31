@@ -152,16 +152,14 @@ export async function deleteVendor(id: string) {
         await fs.promises.rmdir(join('/product_images', id.toString())).catch(
             (err) => {
                 console.error("Failed to remove vendor image directory", err);
-                return {
-                    errorMessage: createDatabaseErrorMsg(`Failed to delete vendor. Failed to remove vendor image directory. ${err.message}`),
-                };
+                throw new Error(`Failed to delete vendor. Failed to remove vendor image directory. ${err.message}`, err);
             }
         )
 
     } catch (error: any) {
         console.error("Failed to delete vendor", error);
         return {
-            errorMessage: createDatabaseErrorMsg(`Failed to delete vendor. ${error.message}`),
+            errorMessage: error.message,
         };
     }
 

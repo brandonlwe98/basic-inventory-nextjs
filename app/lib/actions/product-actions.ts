@@ -75,13 +75,15 @@ export async function createProduct(prevState: ProductState, formData: FormData)
     const image : File = imageURL as File;
 
     const formattedQuantity = quantity * 100;
+
+    var insertedProduct = null;
+
     try {
-        const insertedProduct = await sql`
+        insertedProduct = await sql`
             INSERT INTO products (vendor_id, name, barcode, quantity, unit, created_at, updated_at)
             VALUES (${vendorId}, ${productName}, ${barcode}, ${formattedQuantity}, ${unit}, localtimestamp, localtimestamp)
             RETURNING id;
         `;
-
 
         const productId = insertedProduct.rows[0].id;
         // create image path (e.g. /product_images/1/1.png)
@@ -92,19 +94,23 @@ export async function createProduct(prevState: ProductState, formData: FormData)
         
         // create the product image dir if not exist
         const makingDir = await fs.promises.mkdir(`${join('/product_images', vendorId)}`, { recursive: true}).catch(
-            (err) => {
-                throw err;
-            }
+            ((err) => { 
+                if (err) {
+                    console.error("Error creating product image directory", err);
+                    throw new Error(`Failed to create product. Error creating product image directory. ${err.message}`, err);
+                }
+            })
         )
 
-        await fs.writeFile(join(imagePath), buffer, ((err) => { // write the image file to the path
-            if (err) {
-                console.error("Error writing image to file", err);
-                return {
-                    errorMessage: createDatabaseErrorMsg(`Failed to create product. Error saving product image. ${err.message}`),
-                };
-            }
-        }));
+        // write the image file to the path
+        await fs.promises.writeFile(join(imagePath), buffer).catch(
+            ((err) => { 
+                if (err) {
+                    console.error("Error writing image to file", err);
+                    throw new Error(`Failed to create product. Error saving product image to file. ${err.message}`, err);
+                }
+            })
+        )
 
         await sql`
             UPDATE products
@@ -112,9 +118,14 @@ export async function createProduct(prevState: ProductState, formData: FormData)
             WHERE id=${productId}
             `
     } catch (error : any) {
+        // rollback product insertion if happened
+        if (insertedProduct) {
+            await sql`DELETE FROM products WHERE id = ${insertedProduct.toString()};`;
+        }
+
         console.error("Error creating product: ", error);
         return {
-            errorMessage: createDatabaseErrorMsg(`Failed to create product. ${error.message}`),
+            errorMessage: error.message
         };
     }
 

@@ -91,16 +91,18 @@ export async function createProduct(prevState: ProductState, formData: FormData)
         const buffer = Buffer.from(bytes);
         
         // create the product image dir if not exist
-        const makingDir = await fs.promises.mkdir(`${join('product_images', vendorId)}`, { recursive: true}).catch(
+        const makingDir = await fs.promises.mkdir(`${join('/product_images', vendorId)}`, { recursive: true}).catch(
             (err) => {
                 throw err;
             }
         )
 
-        await fs.writeFile(join('public', imagePath), buffer, ((err) => { // write the image file to the path
+        await fs.writeFile(join(imagePath), buffer, ((err) => { // write the image file to the path
             if (err) {
                 console.error("Error writing image to file", err);
-                throw err;
+                return {
+                    errorMessage: createDatabaseErrorMsg(`Failed to create product. Error saving product image. ${err.message}`),
+                };
             }
         }));
 

@@ -119,8 +119,8 @@ export async function createProduct(prevState: ProductState, formData: FormData)
             `
     } catch (error : any) {
         // rollback product insertion if happened
-        if (insertedProduct) {
-            await sql`DELETE FROM products WHERE id = ${insertedProduct.toString()};`;
+        if (insertedProduct?.rows) {
+            await sql`DELETE FROM products WHERE id = ${insertedProduct?.rows[0]?.id};`;
         }
 
         console.error("Error creating product: ", error);

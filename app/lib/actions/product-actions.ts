@@ -91,9 +91,9 @@ export async function createProduct(prevState: ProductState, formData: FormData)
         const buffer = Buffer.from(bytes);
         
         // create the product image dir if not exist
-        const makingDir = await fs.promises.mkdir(`${join(process.cwd(), 'public', 'product_images', vendorId)}`, { recursive: true});
+        const makingDir = await fs.promises.mkdir(`${join('public', 'product_images', vendorId)}`, { recursive: true});
 
-        await fs.writeFile(join(process.cwd(), 'public', imagePath), buffer, ((err) => { // write the image file to the path
+        await fs.writeFile(join('public', imagePath), buffer, ((err) => { // write the image file to the path
             if (err) {
                 console.error("Error writing image to file", err);
                 throw err;
@@ -105,10 +105,10 @@ export async function createProduct(prevState: ProductState, formData: FormData)
             SET image_url=${imagePath}
             WHERE id=${productId}
             `
-    } catch (error) {
+    } catch (error : any) {
         console.error("Error creating product: ", error);
         return {
-            errorMessage: createDatabaseErrorMsg('Failed to create product.'),
+            errorMessage: createDatabaseErrorMsg(`Failed to create product. ${error.message}`),
         };
     }
 
@@ -196,13 +196,13 @@ export async function deleteProductsByVendor(vendorId: string) {
         await Promise.all(
             products.rows.map(async (product) => {
                 const pathToRemove = join('public', product.image_url);
-                await fs.unlink(pathToRemove, ((err) => {
+                await fs.promises.unlink(pathToRemove).catch(((err) => {
                     console.log("Unlinked product image file with id", product.id);
                     if (err) {
                         console.error("Error removing product image file from directory", err)
                         throw err;
                     }
-                }));
+                }))
 
                 return sql`
                 DELETE FROM products

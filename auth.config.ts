@@ -1,5 +1,5 @@
 import type { NextAuthConfig } from 'next-auth';
- 
+
 export const authConfig = {
   pages: {
     signIn: '/',
@@ -16,6 +16,12 @@ export const authConfig = {
       }
       return true;
     },
+    // async session({ session, token }) {
+    //   return session // The return type will match the one returned in 'auth()'
+    // },
+    // async signIn({ user, account, profile, email, credentials }) {
+    //   return user as any;
+    // },
   },
   providers: [], // Add providers with an empty array for now
 } satisfies NextAuthConfig;

@@ -3,6 +3,8 @@ import Breadcrumbs from '@/app/ui/vendors/breadcrumbs';
 import { fetchVendors } from '@/app/lib/data/vendor-data';
 import { notFound } from 'next/navigation';
 import { fetchProductById } from '@/app/lib/data/product-data';
+import { auth } from '@/auth';
+import { fetchUser } from '@/app/lib/data/user-data';
 
 export default async function Page({ params } : {params: { id: string }}) {
     const id = params.id;
@@ -10,11 +12,14 @@ export default async function Page({ params } : {params: { id: string }}) {
         fetchVendors(),
         fetchProductById(id),
     ]);
+
+    const session = await auth();
+    const user = await fetchUser(session?.user?.name);
     
     if (!product) {
         notFound();
     }
-    
+
     return (
         <main>
             <Breadcrumbs
@@ -27,7 +32,7 @@ export default async function Page({ params } : {params: { id: string }}) {
                 },
             ]}
             />
-            <Form vendors={vendors} product={product} />
+            <Form vendors={vendors} product={product} userAccess={user?.access} />
         </main>
     );
 }

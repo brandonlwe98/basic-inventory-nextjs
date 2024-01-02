@@ -7,6 +7,9 @@ import Search from '@/app/ui/search';
 import { CreateVendor } from '@/app/ui/vendors/buttons';
 import Table from '@/app/ui/vendors/table';
 import Pagination from '@/app/ui/vendors/pagination';
+import { auth } from '@/auth';
+import { fetchUser } from '@/app/lib/data/user-data';
+import { accessLevel } from '@/app/lib/utils';
 
 export default async function Page({
     searchParams,
@@ -18,9 +21,10 @@ export default async function Page({
   }) {
     const query = searchParams?.query || '';
     const currentPage = Number(searchParams?.page) || 1;
-  
     const totalPages = await fetchVendorsPages(query);
-  
+    const session = await auth();
+    const user = await fetchUser(session?.user?.name);
+    
     return (
       <div className="w-full">
         <div className="flex w-full items-center justify-between">
@@ -28,7 +32,11 @@ export default async function Page({
         </div>
         <div className="mt-4 flex items-center justify-between gap-2 md:mt-8">
           <Search placeholder="Search vendors..." />
-          <CreateVendor />
+          {
+            user?.access === accessLevel.ADMIN
+            &&
+            <CreateVendor />
+          }
         </div>
          {/* <Suspense key={query + currentPage} fallback={<InvoicesTableSkeleton />}> */}
           <Table query={query} currentPage={currentPage} />

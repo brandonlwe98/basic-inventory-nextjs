@@ -9,6 +9,8 @@ import { redirect } from 'next/navigation';
 import { unstable_noStore as noStore } from 'next/cache';
 import { deleteProductsByVendor } from './product-actions';
 import { pool } from '@/db.config';
+import { Product, Vendor } from '../definitions';
+import path from 'path';
 const {escapeIdentifier} = require('pg');
 
 const VendorSchema = z.object({
@@ -145,14 +147,6 @@ export async function deleteVendor(id: string) {
         
         await deleteProductsByVendor(id);
 
-        // remove vendor image directory
-        // await fs.promises.rmdir(join('/product_images', id.toString())).catch(
-        //     (err) => {
-        //         console.error("Failed to remove vendor image directory", err);
-        //         throw new Error(`Failed to delete vendor. Failed to remove vendor image directory. ${err.message}`, err);
-        //     }
-        // )
-
     } catch (error: any) {
         console.error("Failed to delete vendor", error);
         return {
@@ -162,4 +156,73 @@ export async function deleteVendor(id: string) {
 
     revalidatePath('/dashboard/vendors');
     redirect('/dashboard/vendors');
+}
+
+export async function generateReport(vendor: Vendor) {
+    try {
+
+    } catch (error) {
+        if (error) {
+            console.error("Failed to generate vendor report", error);
+        } 
+    }
+    const products = await pool.query(
+        `
+        SELECT 
+            p.id,
+            p.vendor_id,
+            p.name,
+            p.itemcode,
+            p.barcode,
+            p.size,
+            p.stock,
+            p.unit
+        from products p
+        JOIN vendors v ON v.id::integer = p.vendor_id::integer
+        WHERE v.id = ${vendor.id}`
+    );
+
+    const ExcelJS = require('exceljs');
+    console.log("Generating vendor report...");
+    const workbook = new ExcelJS.Workbook();
+
+    const sheet = workbook.addWorksheet(`${vendor.name} Inventory Report`);
+
+    sheet.columns = [
+        { header: 'Product Name', key: 'name'},
+        { header: 'Item Code', key: 'itemcode'},
+        { header: 'Barcode', key: 'barcode'},
+        { header: 'Size', key: 'size'},
+        { header: 'Current Stock', key: 'stock'},
+        { header: 'Unit', key: 'unit'},
+    ]
+
+    // set column headers
+    for (let i = 1; i <= sheet.columns.length; i++) {
+        sheet.getRow(1).getCell(i).value = sheet.getColumn(i).header;
+        // console.log(sheet.getColumn('unit').header);
+    }
+
+    products.rows.forEach((product: any) => {
+        let rowIterator = 2;
+
+        for (let i = 1; i <= sheet.columns.length; i++) {
+            // let curRow = sheet.getRow(rowIterator);
+            sheet.getRow(rowIterator).getCell(i).value = product[sheet.getColumn(i).key];
+        }
+        rowIterator++;
+    });
+
+    const currentTimestamp = Date.now();
+    const excelFilePath = path.join(process.cwd(), `public/vendor_reports/${vendor.name}_report_${currentTimestamp}.xlsx`);
+
+    await workbook.xlsx.writeFile(excelFilePath);
+    const res = await fetch(`${process.env.API_URL}/report?file=${excelFilePath.toString()}`, {
+        method: 'POST',
+        body : JSON.stringify({ file: excelFilePath.toString()}),
+    })
+    
+    // res.blob().then((blob) => {
+        
+    // })
 }

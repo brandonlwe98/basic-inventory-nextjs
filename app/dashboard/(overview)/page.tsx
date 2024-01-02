@@ -2,7 +2,6 @@ import { lusitana } from '@/app/ui/fonts';
 import { Suspense, useEffect, useState } from 'react';
 // import { LatestInvoicesSkeleton, RevenueChartSkeleton, CardsSkeleton } from '@/app/ui/skeletons';
 // import CardWrapper from '@/app/ui/dashboard/cards';
-
 export default async function Page() {
     return (
         <main>

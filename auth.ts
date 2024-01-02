@@ -3,15 +3,12 @@ import Credentials from 'next-auth/providers/credentials';
 import { authConfig } from './auth.config';
 import { z } from 'zod';
 import type { User } from '@/app/lib/definitions';
-import { sql } from '@vercel/postgres';
+// import { sql } from '@vercel/postgres';
 import { pool } from './db.config';
 
 async function getUser(username: string): Promise<User | undefined> {
   try {
     const user = await pool.query(`SELECT * FROM users WHERE name='${username}'`);
-    
-    console.log("RESULT", user);
-    
     // const user = await sql<User>`SELECT * FROM users WHERE name=${username}`;
     return user.rows[0];
   } catch (error) {
@@ -36,7 +33,9 @@ export const { auth, signIn, signOut } = NextAuth({
 
           const passwordsMatch = password === user.password;
           
-          if (passwordsMatch) return user;
+          if (passwordsMatch) {
+            return user;
+          }
         }
  
         console.log('Invalid credentials');

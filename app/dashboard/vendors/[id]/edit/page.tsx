@@ -3,11 +3,15 @@ import Breadcrumbs from '@/app/ui/vendors/breadcrumbs';
 import { fetchVendorById } from '@/app/lib/data/vendor-data';
 import { notFound } from 'next/navigation';
 import { getVendorProductCount } from '@/app/lib/actions/vendor-actions';
+import { auth } from '@/auth';
+import { fetchUser } from '@/app/lib/data/user-data';
 
 export default async function Page({ params } : {params: { id: string }}) {
     const id = params.id;
     const vendor = await fetchVendorById(id);
     const totalProducts = await getVendorProductCount(id);
+    const session = await auth();
+    const user = await fetchUser(session?.user?.name);
 
     if (!vendor) {
         notFound();
@@ -25,7 +29,7 @@ export default async function Page({ params } : {params: { id: string }}) {
                 },
             ]}
             />
-            <Form vendor={vendor} totalProducts={totalProducts.toString()} />
+            <Form vendor={vendor} totalProducts={totalProducts.toString()} userAccess={user?.access} />
         </main>
     );
 }

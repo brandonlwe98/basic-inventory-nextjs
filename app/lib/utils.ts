@@ -1,5 +1,11 @@
-import { sql } from "@vercel/postgres";
+// import { sql } from "@vercel/postgres";
 import { Product, Vendor } from "./definitions";
+import { pool } from "@/db.config";
+
+export const accessLevel = {
+  ADMIN: 'administrator',
+  USER: 'user'
+}
 
 export const formatQuantity = (quantity: number) => {
   return (quantity / 100).toLocaleString();
@@ -18,36 +24,6 @@ export const formatDateToLocal = (
   return formatter.format(date);
 };
 
-export async function generateReport(vendor: Vendor) {
-  const products = await sql<Product>`
-    SELECT * from products p
-    JOIN vendor v ON v.id = p.vendor_id
-    WHERE v.id = ${vendor.id}`
-
-  const ExcelJS = require('exceljs');
-  console.log("Generating vendor report...");
-  const workbook = new ExcelJS.Workbook();
-
-  const sheet = workbook.addWorksheet(`${vendor.name} Inventory Report`);
-
-  sheet.columns = [
-    { header: 'Product Name', key: 'name'},
-    { header: 'Barcode', key: 'barcode'},
-    { header: 'Name', key: 'quantity'},
-    { header: 'Unit', key: 'unit'},
-  ]
-
-  let testObj = { name: 'heyo', age: '12'};
-  console.log(testObj['name']);
-  // products.rows.forEach((product) => {
-  //   let rowIterator = 1;
-  //   sheet.columns.forEach((column) => {
-  //     let colIterator = 0;
-  //     let curRow = sheet.getRow(rowIterator);
-  //     curRow.getCell(colIterator).value = product.get(column);
-  //   })
-  // });
-}
 // export const generateYAxis = (revenue: Revenue[]) => {
 //   // Calculate what labels we need to display on the y-axis
 //   // based on highest record and in 1000s

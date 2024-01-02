@@ -2,18 +2,20 @@
 
 import Link from 'next/link';
 import { Button } from '@/app/ui/button';
-import { deleteVendor, getVendorProductCount, updateVendor } from '@/app/lib/actions/vendor-actions';
+import { deleteVendor, generateReport, updateVendor } from '@/app/lib/actions/vendor-actions';
 import { useFormState } from 'react-dom';
 import { Vendor } from '@/app/lib/definitions';
-import { generateReport, formatDateToLocal } from '@/app/lib/utils';
+import { accessLevel, formatDateToLocal } from '@/app/lib/utils';
 import { ExclamationCircleIcon } from '@heroicons/react/24/outline';
 
 export default function EditVendorForm({
   vendor,
-  totalProducts
+  totalProducts,
+  userAccess,
 }: {
   vendor: Vendor;
   totalProducts: String;
+  userAccess: String
 }) {
   const initialState = { errorMessage: '', errors: {}};
   const updateVendorWithId = updateVendor.bind(null, vendor.id);
@@ -25,7 +27,15 @@ export default function EditVendorForm({
   }
 
   async function generateVendorReport() {
-    await generateReport(vendor);
+    await generateReport(vendor)
+    .then((val) => {
+      alert(`Successfully generated vendor report for ${vendor.name}!`);
+    })
+    .catch((err) => {
+        if (err) {
+          alert(`Failed to generate vendor report: ${err.message}`);
+        }
+    })
   }
 
   return (
@@ -43,8 +53,14 @@ export default function EditVendorForm({
                 type="text"
                 defaultValue={vendor.name}
                 placeholder="Enter Vendor's Name"
-                className="peer block w-full rounded-md border border-gray-200 py-2 text-sm outline-2 placeholder:text-gray-500"
+                className="peer block w-full rounded-md border border-gray-200 py-2 text-sm outline-2 placeholder:text-gray-500 disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200"
                 aria-describedby='vendor-error'
+                readOnly={
+                  accessLevel.ADMIN === userAccess ? false : true
+                }
+                disabled={
+                  accessLevel.ADMIN === userAccess ? false : true
+                }
               />
             </div>
             <div id="vendor-error" aria-live="polite" aria-atomic="true">
@@ -130,21 +146,33 @@ export default function EditVendorForm({
         
       </div>
       <div className="mt-6 flex justify-between gap-4">
-        <Button type="button" onClick={deleteVendorHandler} className="flex bg-red-500 hover:bg-red-400 focus:bg-red-600 active:bg-red-600">
-            Delete Vendor
-        </Button>
-        <div className="flex">
+        {
+          userAccess && userAccess === 'administrator' ?
+            <>
+              <Button type="button" name="btnDelete" onClick={deleteVendorHandler} className="flex bg-red-500 hover:bg-red-400 focus:bg-red-600 active:bg-red-600">
+                  Delete
+              </Button>
+              <div className="flex">
+                <Link
+                  href="/dashboard/vendors"
+                  className="flex mx-2 h-10 items-center rounded-lg bg-gray-100 px-4 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200"
+                >
+                  Cancel
+                </Link>
+                <Button type="button" name="btnGenerateReport" onClick={generateVendorReport} className="flex bg-yellow-500 hover:bg-yellow-400 focus:bg-yellow-600 active:bg-yellow-600 mr-2">
+                  Generate Report
+                </Button>
+                <Button type="submit">Edit</Button>
+              </div>
+            </>
+          :
           <Link
-            href="/dashboard/vendors"
-            className="flex mx-2 h-10 items-center rounded-lg bg-gray-100 px-4 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200"
+          href="/dashboard/vendors"
+          className="flex mx-2 h-10 items-center rounded-lg bg-gray-100 px-4 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200"
           >
             Cancel
           </Link>
-          <Button type="button" onClick={generateVendorReport} className="flex bg-blue-400 hover:bg-blue-500 focus:bg-blue-600 active:bg-blue-600 mr-2">
-            Generate Report
-          </Button>
-          <Button type="submit">Edit Vendor</Button>
-        </div>
+        }
 
       </div>
     </form>

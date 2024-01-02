@@ -17,7 +17,7 @@ export default async function ProductsTable({
     <div className="mt-6 flow-root">
       <div className="inline-block min-w-full align-middle">
         <div className="rounded-lg bg-gray-50 p-2 md:pt-0">
-          <div className="md:hidden">
+          <div className="lg:hidden">
             {products?.map((product: ProductTable) => (
               <div
                 key={product.id}
@@ -28,7 +28,7 @@ export default async function ProductsTable({
                     <div className="mb-2 flex items-center">
                       <p>{product.name}</p>
                     </div>
-                    <p className="text-sm text-gray-500">{product.barcode}</p>
+                    <p className="text-sm text-gray-600">{product.category}</p>
                   </div>
                 </div>
                 <div className="flex w-full items-center justify-between pt-4">
@@ -45,10 +45,19 @@ export default async function ProductsTable({
                     <p className="text-xl font-medium">
                       {product.vendor_name}
                     </p>
-                    <p className="text-xl font-medium">
-                      {product.quantity}
+                    <p className="text-md font-light">
+                      Item Code: {product.itemcode}
                     </p>
-                    <p>{product.unit}</p>
+                    <p className="text-md font-light">
+                      Bar Code: {product.barcode}
+                    </p>
+                    <p className="text-md font-light">
+                      Size: {formatQuantity(product.size)}
+                    </p>
+                    <p className="text-md font-light">
+                      Current Stock: {formatQuantity(product.stock)}
+                    </p>
+                    <p className="text-md">{product.unit}</p>
                   </div>
                   <div className="flex justify-end gap-2">
                     <UpdateProduct id={product.id} />
@@ -58,23 +67,32 @@ export default async function ProductsTable({
               </div>
             ))}
           </div>
-          <table className="hidden min-w-full text-gray-900 md:table">
+          <table className="hidden min-w-full text-gray-900 lg:table">
             <thead className="rounded-lg text-left text-sm font-normal">
               <tr>
                 <th scope="col" className="px-4 py-5 font-medium sm:pl-6">
-                  Product Name
+                  Name
                 </th>
-                <th scope="col" className="px-4 py-5 font-medium">
+                <th scope="col" className="px-3 py-5 font-medium">
+                  Category
+                </th>
+                <th scope="col" className="px-3 py-5 font-medium">
                   Image
                 </th>
-                <th scope="col" className="px-4 py-5 font-medium">
+                <th scope="col" className="px-3 py-5 font-medium">
                   Vendor
+                </th>
+                <th scope="col" className="px-3 py-5 font-medium">
+                  Item Code
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
                   Barcode
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
-                  Quantity
+                  Size
+                </th>
+                <th scope="col" className="px-3 py-5 font-medium">
+                  Cur. Stock
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
                   Unit
@@ -96,6 +114,9 @@ export default async function ProductsTable({
                     </div>
                   </td>
                   <td className="whitespace-nowrap px-3 py-3">
+                    {product.category}
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-3">
                     {product.image &&
                       <Image
                         width={64}
@@ -110,10 +131,26 @@ export default async function ProductsTable({
                     {product.vendor_name}
                   </td>
                   <td className="whitespace-nowrap px-3 py-3">
+                    {product.itemcode}
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-3">
                     {product.barcode}
                   </td>
                   <td className="whitespace-nowrap px-3 py-3">
-                    {formatQuantity(product.quantity)}
+                    {formatQuantity(product.size)}
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-3">
+                    {/* <input
+                      id="stock"
+                      name="stock"
+                      type="number"
+                      step="0.01"
+                      placeholder="Enter Current Stock"
+                      className="peer block rounded-md w-full border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
+                      aria-describedby='stock-error'
+                      defaultValue={formatQuantity(product.stock)}
+                    /> */}
+                    {formatQuantity(product.stock)}
                   </td>
                   <td className="whitespace-nowrap px-3 py-3">
                     {product.unit}

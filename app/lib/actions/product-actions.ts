@@ -31,10 +31,17 @@ const ProductSchema = z.object({
     vendorId: z.string({
         invalid_type_error: 'Please select a vendor.',
     }),
+    categoryId: z.string({
+        invalid_type_error: 'Please select a category.',
+    }),
+    itemcode: z.string().trim().min(1, 'Please enter itemcode value'),
     barcode: z.string().trim().min(1, 'Please enter barcode value'),
-    quantity: z.coerce
+    size: z.coerce
         .number()
-        .gt(0, { message: 'Please enter a quantity greater than 0.'}),
+        .gt(0, { message: 'Please enter size greater than 0.'}),
+    stock: z.coerce
+        .number()
+        .nonnegative(),
     unit: z.string().trim().min(1, 'Please enter product unit measurement'),
 });
 
@@ -43,8 +50,11 @@ export type ProductState = {
         productName?: string[];
         imageURL?: string[];
         vendorId?: string[];
+        categoryId?: string[];
+        itemcode?: string[];
         barcode?: string[];
-        quantity?: string[];
+        size?: string[];
+        stock?: string[];
         unit?: string[];
     };
     errorMessage?: string | null;
@@ -52,6 +62,9 @@ export type ProductState = {
 
 const CreateProduct = ProductSchema.omit({ id: true });
 const UpdateProduct = ProductSchema.omit({ id: true, imageURL: true});
+const EditStock = ProductSchema.omit(
+    { id: true, imageURL: true, productName: true, vendorId: true, categoryId: true, itemcode: true, barcode: true, size: true, unit: true}
+);
 
 export async function createProduct(prevState: ProductState, formData: FormData) {
     noStore();
@@ -60,8 +73,11 @@ export async function createProduct(prevState: ProductState, formData: FormData)
         productName: formData.get('productName'),
         imageURL: formData.get('imageURL'),
         vendorId: formData.get('vendorId'),
+        categoryId: formData.get('categoryId'),
+        itemcode: formData.get('itemcode'),
         barcode: formData.get('barcode'),
-        quantity: formData.get('quantity'),
+        size: formData.get('size'),
+        stock: formData.get('stock'),
         unit: formData.get('unit'),
     });
 
@@ -73,7 +89,7 @@ export async function createProduct(prevState: ProductState, formData: FormData)
         };
     }
 
-    const { productName, imageURL, vendorId, barcode, quantity, unit } = validatedFields.data;
+    const { productName, imageURL, vendorId, categoryId, itemcode, barcode, size, stock, unit } = validatedFields.data;
 
     // console.log("IMAGE URL", imageURL);
     // var buffer = await Buffer.from(JSON.stringify(imageURL)); // imageURL returns a File Object
@@ -83,7 +99,8 @@ export async function createProduct(prevState: ProductState, formData: FormData)
     // const bytea : any = new Uint8Array(imageBuffer);
     // console.log("BYTE ARRAY", bytea);
 
-    const formattedQuantity = quantity * 100;
+    const formattedSize = size * 100;
+    const formattedStock = stock * 100;
 
     try {
         // const res = await pool.query(
@@ -112,12 +129,12 @@ export async function createProduct(prevState: ProductState, formData: FormData)
         );
 
         const queryString = (`
-            INSERT INTO products (vendor_id, name, image, barcode, quantity, unit, created_at, updated_at)
-            VALUES (${vendorId}, '${productName}', '${imagePath}', '${barcode}', ${formattedQuantity}, '${unit}', localtimestamp, localtimestamp)
+            INSERT INTO products (vendor_id, name, image, category, itemcode, barcode, size, stock, unit, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, localtimestamp, localtimestamp)
             RETURNING id;
         `);
 
-        await pool.query(queryString);
+        await pool.query(queryString, [vendorId, productName, imagePath, categoryId, itemcode, barcode, formattedSize, formattedStock, unit]);
     } catch (error : any) {
         console.error("Error creating product: ", error);
         return {
@@ -135,8 +152,11 @@ export async function updateProduct(id: string, prevState: ProductState, formDat
     const validatedFields = UpdateProduct.safeParse({
         productName: formData.get('productName'),
         vendorId: formData.get('vendorId'),
+        categoryId: formData.get('categoryId'),
+        itemcode: formData.get('itemcode'),
         barcode: formData.get('barcode'),
-        quantity: formData.get('quantity'),
+        size: formData.get('size'),
+        stock: formData.get('stock'),
         unit: formData.get('unit'),
     });
 
@@ -148,14 +168,26 @@ export async function updateProduct(id: string, prevState: ProductState, formDat
         };
     }
 
-    const { productName, vendorId, barcode, quantity, unit } = validatedFields.data;
-    const formattedQuantity = quantity * 100;
+    const { productName, vendorId, categoryId, itemcode, barcode, size, stock, unit } = validatedFields.data;
+    const formattedSize = size * 100;
+    const formattedStock = stock * 100;
 
     try {
-        await pool.query(
-            `UPDATE products SET name = '${productName}', vendor_id = ${vendorId}, barcode = '${barcode}', quantity = ${formattedQuantity}, unit = '${unit}', updated_at = localtimestamp
-            WHERE id = ${id}`)
-        ;
+        const queryString = `
+            UPDATE products
+            SET name = $1,
+                vendor_id = $2,
+                category = $3,
+                itemcode = $4,
+                barcode = $5,
+                size = $6,
+                stock = $7,
+                unit = $8,
+                updated_at = localtimestamp
+            WHERE id = $9
+        `
+        await pool.query(queryString,
+                        [productName, vendorId, categoryId, itemcode, barcode, formattedSize, formattedStock, unit, id]);
     } catch (error) {
         console.error("Failed to update product", error);
         return {
@@ -224,6 +256,46 @@ export async function deleteProductsByVendor(vendorId: string) {
     }
 
     revalidatePath('/dashboard/products');
+}
+
+// function that will be called only when USER access level edits stock value of product
+export async function editStock(productId: string, prevState: ProductState, formData: FormData) {
+    noStore();
+
+    const validatedFields = EditStock.safeParse({
+        stock: formData.get('stock')
+    })
+
+    // If form validation fails, return errors early. Otherwise, continue.
+    if (!validatedFields.success) {
+        console.log("FIELD ERROR", validatedFields.error.flatten());
+        return {
+            errors: validatedFields.error.flatten().fieldErrors,
+            errorMessage: 'Missing Fields. Failed to Create Product.',
+        };
+    }
+
+    const { stock } = validatedFields.data;
+
+    const formattedStock = stock * 100;
+
+    try {
+        const queryString = `
+            UPDATE products
+            SET stock = $1
+            WHERE id = $2
+        `
+        await pool.query(queryString,
+                        [formattedStock, productId]);
+    } catch (error) {
+        console.error("Failed to update product stock", error);
+        return {
+            errorMessage: createDatabaseErrorMsg('Failed to update product stock.')
+        };
+    }
+
+    revalidatePath('/dashboard/products');
+    redirect('/dashboard/products');
 }
 
 // export async function getProductImage(id: string) {

@@ -3,23 +3,30 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/app/ui/button';
-import { deleteProduct, updateProduct } from '@/app/lib/actions/product-actions';
+import { deleteProduct, updateProduct, editStock } from '@/app/lib/actions/product-actions';
 import { useFormState, useFormStatus } from 'react-dom';
 import { Product, VendorField } from '@/app/lib/definitions';
 import { UserCircleIcon, ScaleIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
 import { useRef, useState } from 'react';
-import { formatDateToLocal, formatQuantity } from '@/app/lib/utils';
+import { accessLevel, formatDateToLocal, formatQuantity } from '@/app/lib/utils';
 
 export default function Form(
-  { vendors, product }: 
+  { vendors, product, userAccess }: 
   { vendors: VendorField[],
-    product: Product}
+    product: Product,
+    userAccess: string
+  }
 ) {
   const initialState = { errorMessage: '', errors: {}};
   const updateProductWithId = updateProduct.bind(null, product.id);
+  const editStockWithId = editStock.bind(null, product.id);
+
   const [state, dispatch] = useFormState(updateProductWithId, initialState);
+  const [userState, userEdit] = useFormState(editStockWithId, initialState);
   const [previewImage, setPreviewImage] = useState<string | null>(product.image);
   const { pending } = useFormStatus();
+  
+  console.log("PRODUCT STUFF", product);
   
   const deleteProductHandler = () => {
     if (confirm("Are you sure you want to delete this product?"))
@@ -27,7 +34,7 @@ export default function Form(
   }
 
   return (
-    <form action={dispatch}>
+    <form action={userAccess === accessLevel.ADMIN ? dispatch : userEdit}>
       <div className="rounded-md bg-gray-50 p-4 md:p-6">
 
         {/* {Vendor} */}
@@ -39,9 +46,13 @@ export default function Form(
             <select
               id="vendorId"
               name="vendorId"
-              className="peer block w-full cursor-pointer rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
+              className="peer block w-full cursor-pointer rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500
+                        disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200 "
               defaultValue={product.vendor_id}
               aria-describedby='customer-error'
+              disabled={
+                accessLevel.ADMIN === userAccess ? false : true
+              }
             >
               <option value="" disabled>
                 Select a vendor
@@ -66,8 +77,8 @@ export default function Form(
 
         {/* {Product Name} */}
         <div className="mb-4">
-          <label htmlFor="amount" className="mb-2 block text-sm font-medium">
-            Product name
+          <label htmlFor="productName" className="mb-2 block text-sm font-medium">
+            Product Name
           </label>
           <div className="relative mt-2 rounded-md">
             <div className="relative">
@@ -76,9 +87,13 @@ export default function Form(
                 name="productName"
                 type="text"
                 placeholder="Enter Product Name"
-                className="peer block w-full rounded-md border border-gray-200 py-2 text-sm outline-2 placeholder:text-gray-500"
+                className="peer block w-full rounded-md border border-gray-200 py-2 text-sm outline-2 placeholder:text-gray-500
+                        disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200"
                 aria-describedby='product-error'
                 defaultValue={product.name}
+                disabled={
+                  accessLevel.ADMIN === userAccess ? false : true
+                }
               />
             </div>
             <div id="product-error" aria-live="polite" aria-atomic="true">
@@ -88,6 +103,27 @@ export default function Form(
                     {error}
                   </p>
               ))}
+            </div>
+          </div>
+        </div>
+
+        {/* {Product Category} */}
+        <div className="mb-4">
+          <label htmlFor="category" className="mb-2 block text-sm font-medium">
+            Product Category
+          </label>
+          <div className="relative mt-2 rounded-md">
+            <div className="relative">
+              <input
+                id="category"
+                name="category"
+                type="text"
+                className="peer block w-full rounded-md border border-gray-200 py-2 text-sm outline-2 placeholder:text-gray-500
+                        disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200"
+                defaultValue={product.category}
+                disabled
+                readOnly
+              />
             </div>
           </div>
         </div>
@@ -116,7 +152,7 @@ export default function Form(
 
         {/* {Barcode} */}
         <div className="mb-4">
-          <label htmlFor="amount" className="mb-2 block text-sm font-medium">
+          <label htmlFor="barcode" className="mb-2 block text-sm font-medium">
             Product Barcode
           </label>
           <div className="relative mt-2 rounded-md">
@@ -126,9 +162,13 @@ export default function Form(
                 name="barcode"
                 type="text"
                 placeholder="Enter Barcode"
-                className="peer block w-full rounded-md border border-gray-200 py-2 text-sm outline-2 placeholder:text-gray-500"
+                className="peer block w-full rounded-md border border-gray-200 py-2 text-sm outline-2 placeholder:text-gray-500
+                          disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200"
                 aria-describedby='barcode-error'
                 defaultValue={product.barcode}
+                disabled={
+                  accessLevel.ADMIN === userAccess ? false : true
+                }
               />
             </div>
             <div id="barcode-error" aria-live="polite" aria-atomic="true">
@@ -142,28 +182,69 @@ export default function Form(
           </div>
         </div>
 
-        {/* {Quantity} */}
+        {/* {Size} */}
         <div className="mb-4">
-          <label htmlFor="amount" className="mb-2 block text-sm font-medium">
-            Choose a quantity
+          <label htmlFor="size" className="mb-2 block text-sm font-medium">
+            Choose Product Size
           </label>
           <div className="relative mt-2 rounded-md">
             <div className="relative">
               <input
-                id="quantity"
-                name="quantity"
+                id="size"
+                name="size"
                 type="number"
                 step="0.01"
-                placeholder="Enter Product Quantity"
-                className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
-                aria-describedby='quantity-error'
-                defaultValue={formatQuantity(product.quantity)}
+                placeholder="Enter Product Size"
+                className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500
+                          disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200"
+                aria-describedby='size-error'
+                defaultValue={formatQuantity(product.size)}
+                disabled={
+                  accessLevel.ADMIN === userAccess ? false : true
+                }
               />
               <ScaleIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
             </div>
-            <div id="amount-error" aria-live="polite" aria-atomic="true">
-              {state.errors?.quantity &&
-                state.errors.quantity.map((error: string) => (
+            <div id="size-error" aria-live="polite" aria-atomic="true">
+              {state.errors?.size &&
+                state.errors.size.map((error: string) => (
+                  <p className="mt-2 text-sm text-red-500" key={error}>
+                    {error}
+                  </p>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* {Stock} */}
+        <div className="mb-4">
+          <label htmlFor="stock" className="mb-2 block text-sm font-medium">
+            Choose Current Stock
+          </label>
+          <div className="relative mt-2 rounded-md">
+            <div className="relative">
+              <input
+                id="stock"
+                name="stock"
+                type="number"
+                step="0.01"
+                placeholder="Enter Current Stock"
+                className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500
+                          disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200"
+                aria-describedby='stock-error'
+                defaultValue={formatQuantity(product.stock)}
+              />
+              <ScaleIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
+            </div>
+            <div id="stock-error" aria-live="polite" aria-atomic="true">
+              {state.errors?.stock &&
+                state.errors.stock.map((error: string) => (
+                  <p className="mt-2 text-sm text-red-500" key={error}>
+                    {error}
+                  </p>
+              ))}
+              {userState.errors?.stock &&
+                userState.errors.stock.map((error: string) => (
                   <p className="mt-2 text-sm text-red-500" key={error}>
                     {error}
                   </p>
@@ -174,7 +255,7 @@ export default function Form(
 
         {/* {Unit} */}
         <div className="mb-4">
-          <label htmlFor="amount" className="mb-2 block text-sm font-medium">
+          <label htmlFor="unit" className="mb-2 block text-sm font-medium">
             Unit Measurement
           </label>
           <div className="relative mt-2 rounded-md">
@@ -184,9 +265,13 @@ export default function Form(
                 name="unit"
                 type="text"
                 placeholder="Enter Unit Measurement (lbs, oz, ...)"
-                className="peer block w-full rounded-md border border-gray-200 py-2 text-sm outline-2 placeholder:text-gray-500"
+                className="peer block w-full rounded-md border border-gray-200 py-2 text-sm outline-2 placeholder:text-gray-500
+                          disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200"
                 aria-describedby='unit-error'
                 defaultValue={product.unit}
+                disabled={
+                  accessLevel.ADMIN === userAccess ? false : true
+                }
               />
             </div>
             <div id="unit-error" aria-live="polite" aria-atomic="true">
@@ -201,7 +286,7 @@ export default function Form(
         </div>
 
         <div className="mb-4">
-          <label htmlFor="amount" className="mb-2 block text-sm font-medium">
+          <label htmlFor="createdAt" className="mb-2 block text-sm font-medium">
             Created At
           </label>
           <div className="relative mt-2 rounded-md">
@@ -220,7 +305,7 @@ export default function Form(
         </div>
 
         <div className="mb-4">
-          <label htmlFor="amount" className="mb-2 block text-sm font-medium">
+          <label htmlFor="updatedAt" className="mb-2 block text-sm font-medium">
             Updated At
           </label>
           <div className="relative mt-2 rounded-md">
@@ -253,18 +338,37 @@ export default function Form(
       </div>
 
       <div className="mt-6 flex justify-between gap-4">
-        <Button type="button" onClick={deleteProductHandler} className="flex bg-red-500 hover:bg-red-400 focus:bg-red-600 active:bg-red-600">
-            Delete Product
-        </Button>
-        <div className="flex">
-          <Link
-            href="/dashboard/products"
-            className="flex mx-2 h-10 items-center rounded-lg bg-gray-100 px-4 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200"
-          >
-            Cancel
-          </Link>
-          <Button type="submit">Edit Product</Button>
-        </div>
+        {
+          userAccess 
+          && userAccess === 'administrator' ?
+          
+          <>
+            <Button type="button" onClick={deleteProductHandler} className="flex bg-red-500 hover:bg-red-400 focus:bg-red-600 active:bg-red-600">
+                Delete Product
+            </Button>
+            <div className="flex">
+              <Link
+                href="/dashboard/products"
+                className="flex mx-2 h-10 items-center rounded-lg bg-gray-100 px-4 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200"
+              >
+                Cancel
+              </Link>
+              <Button type="submit">Edit Product</Button>
+            </div>
+          </>
+        :
+          <>
+            <Link
+              href="/dashboard/products"
+              className="flex mx-2 h-10 items-center rounded-lg bg-gray-100 px-4 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200"
+            >
+              Cancel
+            </Link>
+            <Button type="submit">Edit Product</Button>
+          </>
+        }
+
+
       </div>
     </form>
   );

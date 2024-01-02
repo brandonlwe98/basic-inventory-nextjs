@@ -6,6 +6,7 @@ export type User = {
   id: string;
   username: string;
   password: string;
+  access: string;
 };
 
 export type Vendor = {
@@ -27,8 +28,11 @@ export type Product = {
   vendor_id: string;
   name: string;
   image: string;
+  category: string;
+  itemcode: string;
   barcode: string;
-  quantity: number;
+  size: number;
+  stock: number;
   unit: string;
   created_at: string;
   updated_at: string;
@@ -47,8 +51,11 @@ export type ProductTable = {
   vendor_name: string;
   name: string;
   image: string;
+  category: string;
+  itemcode: string;
   barcode: string;
-  quantity: number;
+  size: number;
+  stock: number;
   unit: string;
   created_at: string;
   updated_at: string;

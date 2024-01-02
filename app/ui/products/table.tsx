@@ -28,7 +28,7 @@ export default async function ProductsTable({
                     <div className="mb-2 flex items-center">
                       <p>{product.name}</p>
                     </div>
-                    <p className="text-sm text-gray-600">{product.category}</p>
+                    {/* <p className="text-sm text-gray-600">{product.category}</p> */}
                   </div>
                 </div>
                 <div className="flex w-full items-center justify-between pt-4">
@@ -73,9 +73,9 @@ export default async function ProductsTable({
                 <th scope="col" className="px-4 py-5 font-medium sm:pl-6">
                   Name
                 </th>
-                <th scope="col" className="px-3 py-5 font-medium">
+                {/* <th scope="col" className="px-3 py-5 font-medium">
                   Category
-                </th>
+                </th> */}
                 <th scope="col" className="px-3 py-5 font-medium">
                   Image
                 </th>
@@ -113,9 +113,9 @@ export default async function ProductsTable({
                       <p>{product.name}</p>
                     </div>
                   </td>
-                  <td className="whitespace-nowrap px-3 py-3">
+                  {/* <td className="whitespace-nowrap px-3 py-3">
                     {product.category}
-                  </td>
+                  </td> */}
                   <td className="whitespace-nowrap px-3 py-3">
                     {product.image &&
                       <Image

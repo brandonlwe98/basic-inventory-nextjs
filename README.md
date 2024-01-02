@@ -13,7 +13,7 @@ Edit the `db.config.ts` file based on the database settings.
 Third, run the following command to setup the database on postgres for the first time
 
 ```bash
-npm run seed -- [database_name] [database_password]
+npm run seed -- [username] [database_password]
 ```
 > :warning: **This script will delete all data in your database and setup mock data**: Be very careful here!
 

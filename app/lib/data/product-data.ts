@@ -10,7 +10,7 @@ export async function fetchProducts() {
 
     try {
         const data = await pool.query(
-          `SELECT id, vendor_id, name, image, category, itemcode, barcode, size, stock, unit, created_at, updated_at FROM products ORDER BY name ASC LIMIT ${ITEMS_PER_PAGE}`);
+          `SELECT id, vendor_id, name, image, itemcode, barcode, size, stock, unit, created_at, updated_at FROM products ORDER BY name ASC LIMIT ${ITEMS_PER_PAGE}`);
 
         return data;
     } catch (error) {
@@ -26,10 +26,8 @@ export async function fetchProductsPages(query: string) {
       const queryString = `SELECT COUNT(*)
         FROM products p
         JOIN vendors v ON p.vendor_id::integer = v.id::integer
-        JOIN categories c ON c.id::integer = p.category::integer
         WHERE 
           p.name ILIKE $1 OR
-          c.name ILIKE $1 OR
           p.itemcode ILIKE $1 OR
           p.barcode ILIKE $1 OR
           p.size::text ILIKE $1 OR
@@ -65,7 +63,6 @@ export async function fetchFilteredProducts(
           v.name as vendor_name,
           p.name,
           p.image,
-          c.name as category,
           p.itemcode,
           p.barcode,
           p.size,
@@ -75,11 +72,9 @@ export async function fetchFilteredProducts(
           p.updated_at
         FROM products p
         JOIN vendors v ON p.vendor_id::integer = v.id::integer
-        JOIN categories c ON c.id::integer = p.category::integer
         WHERE
           p.name ILIKE $1 OR
           v.name ILIKE $1 OR
-          c.name ILIKE $1 OR
           p.itemcode ILIKE $1 OR
           p.barcode ILIKE $1 OR
           p.size::text ILIKE $1 OR
@@ -105,10 +100,9 @@ export async function fetchProductById(id: string) {
     
     try {
       const queryString = `
-      SELECT p.*, c.name as category
-      FROM products p
-      JOIN categories c ON p.category = c.id
-      WHERE p.id = ${id}`;
+      SELECT *
+      FROM products
+      WHERE id = ${id}`;
 
       const data = await pool.query(queryString);
       

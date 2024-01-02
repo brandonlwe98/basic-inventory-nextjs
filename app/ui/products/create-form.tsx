@@ -56,7 +56,7 @@ export default function Form({ vendors }: { vendors: VendorField[] }) {
         
         {/* {Product Name} */}
         <div className="mb-4">
-          <label htmlFor="amount" className="mb-2 block text-sm font-medium">
+          <label htmlFor="productName" className="mb-2 block text-sm font-medium">
             Product name
           </label>
           <div className="relative mt-2 rounded-md">
@@ -83,7 +83,7 @@ export default function Form({ vendors }: { vendors: VendorField[] }) {
 
         {/* {Product Image} */}
         <div className="mb-4">
-          <label htmlFor="amount" className="mb-2 block text-sm font-medium">
+          <label htmlFor="imageURL" className="mb-2 block text-sm font-medium">
             Product Image
           </label>
           <div className="relative mt-2 rounded-md">
@@ -132,9 +132,36 @@ export default function Form({ vendors }: { vendors: VendorField[] }) {
           </div>
         </div>
 
+        {/* {Itemcode} */}
+        <div className="mb-4">
+          <label htmlFor="itemcode" className="mb-2 block text-sm font-medium">
+            Product Item Code
+          </label>
+          <div className="relative mt-2 rounded-md">
+            <div className="relative">
+              <input
+                id="itemcode"
+                name="itemcode"
+                type="text"
+                placeholder="Enter Item Code"
+                className="peer block w-full rounded-md border border-gray-200 py-2 text-sm outline-2 placeholder:text-gray-500"
+                aria-describedby='itemcode-error'
+              />
+            </div>
+            <div id="itemcode-error" aria-live="polite" aria-atomic="true">
+              {state.errors?.itemcode &&
+                state.errors.itemcode.map((error: string) => (
+                  <p className="mt-2 text-sm text-red-500" key={error}>
+                    {error}
+                  </p>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* {Barcode} */}
         <div className="mb-4">
-          <label htmlFor="amount" className="mb-2 block text-sm font-medium">
+          <label htmlFor="barcode" className="mb-2 block text-sm font-medium">
             Product Barcode
           </label>
           <div className="relative mt-2 rounded-md">
@@ -161,7 +188,7 @@ export default function Form({ vendors }: { vendors: VendorField[] }) {
         
         {/* {Size} */}
         <div className="mb-4">
-          <label htmlFor="amount" className="mb-2 block text-sm font-medium">
+          <label htmlFor="size" className="mb-2 block text-sm font-medium">
             Choose product size
           </label>
           <div className="relative mt-2 rounded-md">
@@ -190,7 +217,7 @@ export default function Form({ vendors }: { vendors: VendorField[] }) {
 
         {/* {Stock} */}
         <div className="mb-4">
-          <label htmlFor="amount" className="mb-2 block text-sm font-medium">
+          <label htmlFor="stock" className="mb-2 block text-sm font-medium">
             Choose current stock
           </label>
           <div className="relative mt-2 rounded-md">
@@ -219,7 +246,7 @@ export default function Form({ vendors }: { vendors: VendorField[] }) {
 
         {/* {Unit} */}
         <div className="mb-4">
-          <label htmlFor="amount" className="mb-2 block text-sm font-medium">
+          <label htmlFor="unit" className="mb-2 block text-sm font-medium">
             Unit Measurement
           </label>
           <div className="relative mt-2 rounded-md">

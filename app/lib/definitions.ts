@@ -28,7 +28,6 @@ export type Product = {
   vendor_id: string;
   name: string;
   image: string;
-  category: string;
   itemcode: string;
   barcode: string;
   size: number;
@@ -51,7 +50,6 @@ export type ProductTable = {
   vendor_name: string;
   name: string;
   image: string;
-  category: string;
   itemcode: string;
   barcode: string;
   size: number;

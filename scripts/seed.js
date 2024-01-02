@@ -171,7 +171,6 @@ async function seedProducts() {
               vendor_id VARCHAR(10) NOT NULL,
               name VARCHAR(255) NOT NULL,
               image VARCHAR(255) NULL,
-              category int NOT NULL,
               itemcode VARCHAR(100) NOT NULL,
               barcode VARCHAR(100) NOT NULL,
               size int NOT NULL,
@@ -189,7 +188,6 @@ async function seedProducts() {
             vendor_id: 1,
             name: 'Apple',
             image: '/product_images/apple.png',
-            category: 1,
             itemcode: 'A123',
             barcode: '123-456-789',
             size: 1000,
@@ -200,7 +198,6 @@ async function seedProducts() {
             vendor_id: 2,
             name: 'Orange',
             image: '/product_images/orange.png',
-            category: 2,
             itemcode: 'B456',
             barcode: '987-654-321',
             size: 2518,
@@ -211,7 +208,6 @@ async function seedProducts() {
             vendor_id: 3,
             name: 'Banana',
             image: '/product_images/banana.png',
-            category: 3,
             itemcode: 'C789',
             barcode: '111-222-333',
             size: 1515,
@@ -224,8 +220,8 @@ async function seedProducts() {
       const insertedProducts = await Promise.all(
         values.map(async (value) => {
           return pool.query(
-          'INSERT INTO products (vendor_id, name, image, category, itemcode, barcode, size, stock, unit, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, localtimestamp, localtimestamp)',
-          [value.vendor_id, value.name, value.image, value.category, value.itemcode, value.barcode, value.size, value.stock, value.unit]
+          'INSERT INTO products (vendor_id, name, image, itemcode, barcode, size, stock, unit, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, localtimestamp, localtimestamp)',
+          [value.vendor_id, value.name, value.image, value.itemcode, value.barcode, value.size, value.stock, value.unit]
           );
         }),
       )
@@ -275,7 +271,7 @@ async function main() {
     await seedUsers();
     await seedVendors();
     await seedProducts();
-    await seedCategory();
+    // await seedCategory();
     // await seedProductImages();
   } catch (error) {
     console.error("Error seeding database" + error.message, error);

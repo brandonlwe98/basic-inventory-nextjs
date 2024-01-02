@@ -108,7 +108,7 @@ export default function Form(
         </div>
 
         {/* {Product Category} */}
-        <div className="mb-4">
+        {/* <div className="mb-4">
           <label htmlFor="category" className="mb-2 block text-sm font-medium">
             Product Category
           </label>
@@ -126,7 +126,7 @@ export default function Form(
               />
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* {Product Image} */}
         <div className="mb-4">
@@ -147,6 +147,38 @@ export default function Form(
                 </div> 
               )
             }
+          </div>
+        </div>
+
+        {/* {Itemcode} */}
+        <div className="mb-4">
+          <label htmlFor="itemcode" className="mb-2 block text-sm font-medium">
+            Product Item Code
+          </label>
+          <div className="relative mt-2 rounded-md">
+            <div className="relative">
+              <input
+                id="itemcode"
+                name="itemcode"
+                type="text"
+                placeholder="Enter Item Code"
+                className="peer block w-full rounded-md border border-gray-200 py-2 text-sm outline-2 placeholder:text-gray-500
+                          disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200"
+                aria-describedby='itemcode-error'
+                defaultValue={product.itemcode}
+                disabled={
+                  accessLevel.ADMIN === userAccess ? false : true
+                }
+              />
+            </div>
+            <div id="itemcode-error" aria-live="polite" aria-atomic="true">
+              {state.errors?.itemcode &&
+                state.errors.itemcode.map((error: string) => (
+                  <p className="mt-2 text-sm text-red-500" key={error}>
+                    {error}
+                  </p>
+              ))}
+            </div>
           </div>
         </div>
 

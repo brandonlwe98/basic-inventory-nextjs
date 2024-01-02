@@ -31,9 +31,6 @@ const ProductSchema = z.object({
     vendorId: z.string({
         invalid_type_error: 'Please select a vendor.',
     }),
-    categoryId: z.string({
-        invalid_type_error: 'Please select a category.',
-    }),
     itemcode: z.string().trim().min(1, 'Please enter itemcode value'),
     barcode: z.string().trim().min(1, 'Please enter barcode value'),
     size: z.coerce
@@ -50,7 +47,6 @@ export type ProductState = {
         productName?: string[];
         imageURL?: string[];
         vendorId?: string[];
-        categoryId?: string[];
         itemcode?: string[];
         barcode?: string[];
         size?: string[];
@@ -63,7 +59,7 @@ export type ProductState = {
 const CreateProduct = ProductSchema.omit({ id: true });
 const UpdateProduct = ProductSchema.omit({ id: true, imageURL: true});
 const EditStock = ProductSchema.omit(
-    { id: true, imageURL: true, productName: true, vendorId: true, categoryId: true, itemcode: true, barcode: true, size: true, unit: true}
+    { id: true, imageURL: true, productName: true, vendorId: true, itemcode: true, barcode: true, size: true, unit: true}
 );
 
 export async function createProduct(prevState: ProductState, formData: FormData) {
@@ -73,7 +69,6 @@ export async function createProduct(prevState: ProductState, formData: FormData)
         productName: formData.get('productName'),
         imageURL: formData.get('imageURL'),
         vendorId: formData.get('vendorId'),
-        categoryId: formData.get('categoryId'),
         itemcode: formData.get('itemcode'),
         barcode: formData.get('barcode'),
         size: formData.get('size'),
@@ -83,13 +78,14 @@ export async function createProduct(prevState: ProductState, formData: FormData)
 
     // If form validation fails, return errors early. Otherwise, continue.
     if (!validatedFields.success) {
+        console.info("Missing create-product fields", validatedFields.error.flatten().fieldErrors);
         return {
             errors: validatedFields.error.flatten().fieldErrors,
             errorMessage: 'Missing Fields. Failed to Create Product.',
         };
     }
 
-    const { productName, imageURL, vendorId, categoryId, itemcode, barcode, size, stock, unit } = validatedFields.data;
+    const { productName, imageURL, vendorId, itemcode, barcode, size, stock, unit } = validatedFields.data;
 
     // console.log("IMAGE URL", imageURL);
     // var buffer = await Buffer.from(JSON.stringify(imageURL)); // imageURL returns a File Object
@@ -129,12 +125,12 @@ export async function createProduct(prevState: ProductState, formData: FormData)
         );
 
         const queryString = (`
-            INSERT INTO products (vendor_id, name, image, category, itemcode, barcode, size, stock, unit, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, localtimestamp, localtimestamp)
+            INSERT INTO products (vendor_id, name, image, itemcode, barcode, size, stock, unit, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, localtimestamp, localtimestamp)
             RETURNING id;
         `);
 
-        await pool.query(queryString, [vendorId, productName, imagePath, categoryId, itemcode, barcode, formattedSize, formattedStock, unit]);
+        await pool.query(queryString, [vendorId, productName, imagePath, itemcode, barcode, formattedSize, formattedStock, unit]);
     } catch (error : any) {
         console.error("Error creating product: ", error);
         return {
@@ -152,7 +148,6 @@ export async function updateProduct(id: string, prevState: ProductState, formDat
     const validatedFields = UpdateProduct.safeParse({
         productName: formData.get('productName'),
         vendorId: formData.get('vendorId'),
-        categoryId: formData.get('categoryId'),
         itemcode: formData.get('itemcode'),
         barcode: formData.get('barcode'),
         size: formData.get('size'),
@@ -168,7 +163,7 @@ export async function updateProduct(id: string, prevState: ProductState, formDat
         };
     }
 
-    const { productName, vendorId, categoryId, itemcode, barcode, size, stock, unit } = validatedFields.data;
+    const { productName, vendorId, itemcode, barcode, size, stock, unit } = validatedFields.data;
     const formattedSize = size * 100;
     const formattedStock = stock * 100;
 
@@ -177,17 +172,16 @@ export async function updateProduct(id: string, prevState: ProductState, formDat
             UPDATE products
             SET name = $1,
                 vendor_id = $2,
-                category = $3,
-                itemcode = $4,
-                barcode = $5,
-                size = $6,
-                stock = $7,
-                unit = $8,
+                itemcode = $3,
+                barcode = $4,
+                size = $5,
+                stock = $6,
+                unit = $7,
                 updated_at = localtimestamp
-            WHERE id = $9
+            WHERE id = $8
         `
         await pool.query(queryString,
-                        [productName, vendorId, categoryId, itemcode, barcode, formattedSize, formattedStock, unit, id]);
+                        [productName, vendorId, itemcode, barcode, formattedSize, formattedStock, unit, id]);
     } catch (error) {
         console.error("Failed to update product", error);
         return {

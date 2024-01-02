@@ -9,15 +9,9 @@
 # testing
 /coverage
 
-# scripts
-/scripts/
-
 # next.js
 /.next/
 /out/
-
-# db
-/db.config.ts
 
 # production
 /build

@@ -23,19 +23,29 @@ export default function EditVendorForm({
 
   const deleteVendorHandler = () => {
     if (confirm("Are you sure you want to delete this vendor? All the associated products will be removed as well."))
-      deleteVendor(vendor.id);
+      deleteVendor(vendor.id)
   }
 
   async function generateVendorReport() {
-    await generateReport(vendor)
-    .then((val) => {
-      alert(`Successfully generated vendor report for ${vendor.name}!`);
-    })
+    const res = await generateReport(vendor) // expect file on success
     .catch((err) => {
         if (err) {
           alert(`Failed to generate vendor report: ${err.message}`);
         }
     })
+
+    if (res) { // if file, prompt user to download it
+      // let buffer = Buffer.from(res);
+      // let blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+      // let url = URL.createObjectURL(blob);
+      // let link = document.createElement('a');
+      // link.href=url;
+      // link.setAttribute(
+      //   'download',
+      //   `${vendor.name}_Inventory_Report.xlsx`,
+      // );
+      // link.click();
+    }
   }
 
   return (

@@ -36,3 +36,7 @@ yarn-error.log*
 *.tsbuildinfo
 # next-env.d.ts
 
+# public
+/public/product_images/*
+/public/vendor_reports/*
+

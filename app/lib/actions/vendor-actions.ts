@@ -3,7 +3,7 @@
 import { z } from 'zod';
 // import { sql } from '@vercel/postgres';
 import { revalidatePath } from 'next/cache';
-import { createDatabaseErrorMsg } from '../utils';
+import { createDatabaseErrorMsg, formatQuantity } from '../utils';
 import { redirect } from 'next/navigation';
 // import { Product, Vendor } from '../definitions';
 import { unstable_noStore as noStore } from 'next/cache';
@@ -11,6 +11,7 @@ import { deleteProductsByVendor } from './product-actions';
 import { pool } from '@/db.config';
 import { Product, Vendor } from '../definitions';
 import path from 'path';
+import fs from 'fs';
 const {escapeIdentifier} = require('pg');
 
 const VendorSchema = z.object({
@@ -159,70 +160,152 @@ export async function deleteVendor(id: string) {
 }
 
 export async function generateReport(vendor: Vendor) {
-    try {
 
+    try {
+        const products = await pool.query(
+            `
+            SELECT 
+                p.id,
+                p.vendor_id,
+                p.name,
+                p.itemcode,
+                p.barcode,
+                p.size,
+                p.stock,
+                p.unit
+            from products p
+            JOIN vendors v ON v.id::integer = p.vendor_id::integer
+            WHERE v.id = ${vendor.id}`
+        );
+
+        const ExcelJS = require('exceljs');
+        console.log("Generating vendor report...");
+        
+        const workbook = new ExcelJS.Workbook();
+
+        const sheet = workbook.addWorksheet(`${vendor.name} Inventory Report`, {
+            pageSetup: {
+                paperSize: 9,
+                orientation: 'portrait',
+            }
+        });
+
+        // sheet.columns = [
+        //     { header: 'Item No.', key: 'itemcode'},
+        //     { header: 'Qty per Case/Bx', key: 'size'},
+        //     { header: 'Item Wt.', key: 'unit'},
+        //     { header: 'QTY CS Order', key: 'stock'},
+        // ]
+
+        // Create Default Page Header
+        sheet.mergeCells('A1:C1'); // Address Line 1
+        sheet.mergeCells('A2:C2'); // Address Line 2
+        sheet.getCell('A1').value = "801 University Ave, Unit 1";
+        sheet.getCell('A2').value = "Des Moines, IA 50134";
+        sheet.getCell('A1').alignment = { horizontal: 'left'};
+        sheet.getCell('A2').alignment = { horizontal: 'left'};
+        
+        sheet.mergeCells('D1:F1'); // C Fresh Market
+        sheet.mergeCells('D2:F2'); // Purchase Order Form
+        sheet.getCell('D1').value = "C Fresh Market";
+        sheet.getCell('D2').value = "PURCHASE ORDER FORM";
+        sheet.getCell('D1').alignment = { horizontal: 'center'};
+        sheet.getCell('D2').alignment = { horizontal: 'center'};
+
+        sheet.mergeCells('H1:I1'); // Tel No.
+        sheet.mergeCells('H2:I2'); // Fax No.
+        sheet.getCell('H1').value = "Tel:(515) 288-0525";
+        sheet.getCell('H2').value = "Fax:(515) 288-0602";
+        sheet.getCell('H1').alignment = { horizontal: 'left'};
+        sheet.getCell('H2').alignment = { horizontal: 'left'};
+
+        sheet.getCell('A4').value = "Company:";
+        sheet.getCell('D4').value = "Salesman:";
+        sheet.getCell('H4').value = "Date:";
+
+        sheet.mergeCells('A5:I5');
+        sheet.getCell('A5').value = "PLEASE INFORM US ANY SHORTED OR DISCONTINUED ITEM, SO WE CAN FIND OTHER ALTERNATIVES."
+        sheet.getCell('A5').style = {font: { bold: true }};
+
+        // table header row
+        const borderAround = {bottom: {style:'thin'}, top: {style:'thin'}, left: {style:'thin'}, right: {style:'thin'}};
+        sheet.mergeCells('B6:C6'); // Item No.
+        sheet.mergeCells('D6:E6'); // Qty per Case/Bx
+        sheet.mergeCells('G6:H6'); // Qty CS Order
+        sheet.getCell('A6').value = '#';
+        sheet.getCell('A6').border = borderAround;
+        sheet.getCell('B6').value = 'Item No.';
+        sheet.getCell('B6').alignment = { horizontal: 'center', vertical: 'middle'};
+        sheet.getCell('B6').border = borderAround;
+        sheet.getCell('D6').value = "Qty per Case/Bx";
+        sheet.getCell('D6').alignment = { wrapText: true, horizontal: 'center', vertical: 'middle' };
+        sheet.getCell('D6').border = borderAround;
+        sheet.getCell('F6').value = "Item Wt. (oz/lb)"
+        sheet.getCell('F6').alignment = { wrapText: true, horizontal: 'center', vertical: 'middle' };
+        sheet.getCell('F6').border = borderAround;
+        sheet.getCell('G6').value = "QTY CS Order"
+        sheet.getCell('G6').alignment = { wrapText: true, horizontal: 'center', vertical: 'middle' };
+        sheet.getCell('G6').border = borderAround;
+
+        // const table = sheet.addTable({
+        //     name: "ProductTable",
+        //     ref: 'A6', // top left of table starts at A6
+        //     headerRow: true,
+        //     totalsRow: false,
+        //     columns: [
+        //         { name: '#', key: 'index'}, // col 0
+        //         { name: 'Item No.', key: 'itemcode'}, // col 1
+        //         { name: 'Qty per Case/Bx', key: 'size', wrapText: true}, // col 2
+        //         { name: 'Item Wt.', key: 'unit'}, // col 3
+        //         { name: 'QTY CS Order', key: 'stock'}, // col 4
+        //     ],
+        //     rows: [],
+        // })
+
+        // // set column headers
+        // for (let i = 1; i <= sheet.columns.length; i++) {
+        //     sheet.getRow(1).getCell(i).value = sheet.getColumn(i).header;
+        //     sheet.getRow(1).getCell(i).alignment = { wrapText: true, defaultColWidth: 10, vertical: 'middle', horizontal: 'center' };
+        // }
+
+        // start printing table results
+        // let rowIterator = 2;
+        // products.rows.forEach((product: any, index: number) => {
+        //     table.addRow([
+        //         index + 1,
+        //         product['itemcode'],
+        //         formatQuantity(product['size']),
+        //         product['unit'],
+        //         formatQuantity(product['stock'])
+        //     ])
+        //     table.commit();
+        // });
+
+        products.rows.forEach((product: Product, index: number) => {
+            let curRow = sheet.addRow([
+                index + 1,
+                product['itemcode'],
+                formatQuantity(product['size']),
+                product['unit'],
+                formatQuantity(product['stock'])
+            ])
+            curRow.border = borderAround;
+        })
+
+        const currentTimestamp = Date.now();
+        // const fileName = `vendor_report_${currentTimestamp}.xlsx`;
+        const fileName = `test.xlsx`;
+        const excelFilePath = path.join(process.cwd(), `public/vendor_reports`, fileName);
+
+        await workbook.xlsx.writeFile(excelFilePath);
+        const file = await fs.promises.readFile(excelFilePath.toString()).catch((err) => { if (err) throw err });
+        // console.log('excel file', file);
+
+        return file;
     } catch (error) {
         if (error) {
             console.error("Failed to generate vendor report", error);
+            throw error;
         } 
     }
-    const products = await pool.query(
-        `
-        SELECT 
-            p.id,
-            p.vendor_id,
-            p.name,
-            p.itemcode,
-            p.barcode,
-            p.size,
-            p.stock,
-            p.unit
-        from products p
-        JOIN vendors v ON v.id::integer = p.vendor_id::integer
-        WHERE v.id = ${vendor.id}`
-    );
-
-    const ExcelJS = require('exceljs');
-    console.log("Generating vendor report...");
-    const workbook = new ExcelJS.Workbook();
-
-    const sheet = workbook.addWorksheet(`${vendor.name} Inventory Report`);
-
-    sheet.columns = [
-        { header: 'Product Name', key: 'name'},
-        { header: 'Item Code', key: 'itemcode'},
-        { header: 'Barcode', key: 'barcode'},
-        { header: 'Size', key: 'size'},
-        { header: 'Current Stock', key: 'stock'},
-        { header: 'Unit', key: 'unit'},
-    ]
-
-    // set column headers
-    for (let i = 1; i <= sheet.columns.length; i++) {
-        sheet.getRow(1).getCell(i).value = sheet.getColumn(i).header;
-        // console.log(sheet.getColumn('unit').header);
-    }
-
-    products.rows.forEach((product: any) => {
-        let rowIterator = 2;
-
-        for (let i = 1; i <= sheet.columns.length; i++) {
-            // let curRow = sheet.getRow(rowIterator);
-            sheet.getRow(rowIterator).getCell(i).value = product[sheet.getColumn(i).key];
-        }
-        rowIterator++;
-    });
-
-    const currentTimestamp = Date.now();
-    const excelFilePath = path.join(process.cwd(), `public/vendor_reports/${vendor.name}_report_${currentTimestamp}.xlsx`);
-
-    await workbook.xlsx.writeFile(excelFilePath);
-    const res = await fetch(`${process.env.API_URL}/report?file=${excelFilePath.toString()}`, {
-        method: 'POST',
-        body : JSON.stringify({ file: excelFilePath.toString()}),
-    })
-    
-    // res.blob().then((blob) => {
-        
-    // })
 }

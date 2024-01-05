@@ -40,7 +40,7 @@ export async function fetchFilteredVendors(
     currentPage: number,
   ) {
     const offset = (currentPage - 1) * ITEMS_PER_PAGE;
-  
+    
     noStore();
     
     try {

@@ -3,6 +3,7 @@ import { fetchFilteredProducts } from '@/app/lib/data/product-data';
 import { DeleteProduct, UpdateProduct } from './buttons';
 import { formatQuantity } from '@/app/lib/utils';
 import { ProductTable } from '@/app/lib/definitions';
+import path from 'path';
 
 export default async function ProductsTable({
   query,
@@ -122,6 +123,7 @@ export default async function ProductsTable({
                         width={64}
                         height={64}
                         alt={`${product.name} Product`}
+                        // src={require('@/public/' + product.image.toString())}
                         src={product.image}
                       />
                     }

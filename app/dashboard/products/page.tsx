@@ -7,6 +7,8 @@ import { fetchProductsPages } from '@/app/lib/data/product-data';
 import { accessLevel } from '@/app/lib/utils';
 import { auth } from '@/auth';
 import { fetchUser } from '@/app/lib/data/user-data';
+import { Suspense } from 'react';
+import { ProductsTableSkeleton } from '@/app/ui/products/skeletons';
 
 export default async function Page({
     searchParams,
@@ -35,9 +37,9 @@ export default async function Page({
             <CreateProduct />
           }
         </div>
-         {/* <Suspense key={query + currentPage} fallback={<InvoicesTableSkeleton />}> */}
+         <Suspense key={query + currentPage} fallback={<ProductsTableSkeleton />}>
           <Table query={query} currentPage={currentPage} />
-        {/* </Suspense> */}
+        </Suspense>
         <div className="mt-5 flex w-full justify-center">
           <Pagination totalPages={totalPages} />
         </div>

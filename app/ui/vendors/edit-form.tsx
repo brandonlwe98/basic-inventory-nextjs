@@ -35,16 +35,16 @@ export default function EditVendorForm({
     })
 
     if (res) { // if file, prompt user to download it
-      // let buffer = Buffer.from(res);
-      // let blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-      // let url = URL.createObjectURL(blob);
-      // let link = document.createElement('a');
-      // link.href=url;
-      // link.setAttribute(
-      //   'download',
-      //   `${vendor.name}_Inventory_Report.xlsx`,
-      // );
-      // link.click();
+      let buffer = Buffer.from(res);
+      let blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+      let url = URL.createObjectURL(blob);
+      let link = document.createElement('a');
+      link.href=url;
+      link.setAttribute(
+        'download',
+        `${vendor.name}_Inventory_Report.xlsx`,
+      );
+      link.click();
     }
   }
 

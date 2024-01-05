@@ -52,7 +52,7 @@ export async function fetchFilteredProducts(
     currentPage: number,
   ) {
     const offset = (currentPage - 1) * ITEMS_PER_PAGE;
-  
+    
     noStore();
     
     try {

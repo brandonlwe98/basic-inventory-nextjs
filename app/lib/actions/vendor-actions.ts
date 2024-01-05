@@ -12,7 +12,6 @@ import { pool } from '@/db.config';
 import { Product, Vendor } from '../definitions';
 import path from 'path';
 import fs from 'fs';
-const {escapeIdentifier} = require('pg');
 
 const VendorSchema = z.object({
     id: z.string(),
@@ -183,7 +182,7 @@ export async function generateReport(vendor: Vendor) {
         
         const workbook = new ExcelJS.Workbook();
 
-        const sheet = workbook.addWorksheet(`${vendor.name} Inventory Report`, {
+        const sheet = workbook.addWorksheet(`${vendor.name} Inventory Report`, { // A4 Size
             pageSetup: {
                 paperSize: 9,
                 orientation: 'portrait',
@@ -209,8 +208,10 @@ export async function generateReport(vendor: Vendor) {
         sheet.mergeCells('D2:F2'); // Purchase Order Form
         sheet.getCell('D1').value = "C Fresh Market";
         sheet.getCell('D2').value = "PURCHASE ORDER FORM";
+        sheet.getCell('D1').style = { font: {bold: true }};
         sheet.getCell('D1').alignment = { horizontal: 'center'};
-        sheet.getCell('D2').alignment = { horizontal: 'center'};
+        sheet.getCell('D2').style = { font: {bold: true }};
+        sheet.getCell('D2').alignment = { horizontal: 'center' };
 
         sheet.mergeCells('H1:I1'); // Tel No.
         sheet.mergeCells('H2:I2'); // Fax No.
@@ -224,8 +225,8 @@ export async function generateReport(vendor: Vendor) {
         sheet.getCell('H4').value = "Date:";
 
         sheet.mergeCells('A5:I5');
-        sheet.getCell('A5').value = "PLEASE INFORM US ANY SHORTED OR DISCONTINUED ITEM, SO WE CAN FIND OTHER ALTERNATIVES."
         sheet.getCell('A5').style = {font: { bold: true }};
+        sheet.getCell('A5').value = "* PLEASE INFORM US ANY SHORTED OR DISCONTINUED ITEM, SO WE CAN FIND OTHER ALTERNATIVES."
 
         // table header row
         const borderAround = {bottom: {style:'thin'}, top: {style:'thin'}, left: {style:'thin'}, right: {style:'thin'}};
@@ -247,54 +248,57 @@ export async function generateReport(vendor: Vendor) {
         sheet.getCell('G6').alignment = { wrapText: true, horizontal: 'center', vertical: 'middle' };
         sheet.getCell('G6').border = borderAround;
 
-        // const table = sheet.addTable({
-        //     name: "ProductTable",
-        //     ref: 'A6', // top left of table starts at A6
-        //     headerRow: true,
-        //     totalsRow: false,
-        //     columns: [
-        //         { name: '#', key: 'index'}, // col 0
-        //         { name: 'Item No.', key: 'itemcode'}, // col 1
-        //         { name: 'Qty per Case/Bx', key: 'size', wrapText: true}, // col 2
-        //         { name: 'Item Wt.', key: 'unit'}, // col 3
-        //         { name: 'QTY CS Order', key: 'stock'}, // col 4
-        //     ],
-        //     rows: [],
-        // })
+        // print 38 rows of items
+        for (let i = 0; i < 38; i++) {
+            let curRow = sheet.addRow([]);
+            sheet.mergeCells(curRow.number, 2, curRow.number, 3); // Item No.
+            sheet.mergeCells(curRow.number, 4, curRow.number, 5); // Qty per Case/Bx
+            sheet.mergeCells(curRow.number, 7, curRow.number, 8); // Qty CS Order
 
-        // // set column headers
-        // for (let i = 1; i <= sheet.columns.length; i++) {
-        //     sheet.getRow(1).getCell(i).value = sheet.getColumn(i).header;
-        //     sheet.getRow(1).getCell(i).alignment = { wrapText: true, defaultColWidth: 10, vertical: 'middle', horizontal: 'center' };
-        // }
+            curRow.getCell(1).value = i + 1;
+            if (i < products.rows.length) { // item details if exists
+                let rowValues = [
+                    products.rows[i]['itemcode'],
+                    formatQuantity(products.rows[i]['size']),
+                    products.rows[i]['unit'],
+                    formatQuantity(products.rows[i]['stock'])
+                ];
 
-        // start printing table results
-        // let rowIterator = 2;
-        // products.rows.forEach((product: any, index: number) => {
-        //     table.addRow([
-        //         index + 1,
-        //         product['itemcode'],
-        //         formatQuantity(product['size']),
-        //         product['unit'],
-        //         formatQuantity(product['stock'])
-        //     ])
-        //     table.commit();
-        // });
+                curRow.getCell(2).value = rowValues[0];
+                curRow.getCell(4).value = rowValues[1];
+                curRow.getCell(6).value = rowValues[2];
+                curRow.getCell(7).value = rowValues[3];
+            }
 
-        products.rows.forEach((product: Product, index: number) => {
-            let curRow = sheet.addRow([
-                index + 1,
-                product['itemcode'],
-                formatQuantity(product['size']),
-                product['unit'],
-                formatQuantity(product['stock'])
-            ])
-            curRow.border = borderAround;
-        })
+            for (let i = 1; i <= 8; i++) { // border style and text-align left
+                curRow.getCell(i).border = borderAround;
+                curRow.getCell(i).alignment = { horizontal : 'left'};
+            }
+        }
+
+        // Footer rows
+        sheet.addRow(['* Pick ONLY The Item On The List, Unless Notify Us.']);
+        sheet.addRow(['* Fax Back The Total Weights and Pallets.'])
+        sheet.addRow(['* Drop-Off Order at "YD Trucking" Warehouse on.'])
+        let lastRowVals = ['Authorized Signature:', 'Kevin Ng', 'Tel: (714) 249-3345'];
+        let footerRow = sheet.addRow([]);
+        sheet.mergeCells(footerRow.number, 1, footerRow.number, 2)
+        sheet.mergeCells(footerRow.number, 3, footerRow.number, 4)
+        sheet.mergeCells(footerRow.number, 5, footerRow.number, 6)
+        footerRow.getCell(1).value = lastRowVals[0];
+        footerRow.getCell(1).style = { font: {bold: true}};
+        footerRow.getCell(3).value = lastRowVals[1];
+        footerRow.getCell(3).style = { font: {bold: true, underline: true}};
+        footerRow.getCell(3).alignment = { horizontal: 'center'};
+        footerRow.getCell(5).value = lastRowVals[2];
+        footerRow.getCell(5).style = { font: {bold: true, underline: true}};
+
+        sheet.getColumn(1).width = 9;
+        sheet.getColumn(2).width = 11;
 
         const currentTimestamp = Date.now();
-        // const fileName = `vendor_report_${currentTimestamp}.xlsx`;
-        const fileName = `test.xlsx`;
+        const fileName = `vendor_report_${currentTimestamp}.xlsx`;
+        // const fileName = `test.xlsx`; // for testing purposes (overwrite same file)
         const excelFilePath = path.join(process.cwd(), `public/vendor_reports`, fileName);
 
         await workbook.xlsx.writeFile(excelFilePath);

@@ -123,7 +123,6 @@ export default async function ProductsTable({
                         width={128}
                         height={128}
                         alt={`${product.name} Product`}
-                        // src={require('@/public/' + product.image.toString())}
                         src={product.image}
                       />
                     }

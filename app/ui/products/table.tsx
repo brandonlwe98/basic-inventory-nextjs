@@ -38,8 +38,8 @@ export default async function ProductsTable({
                       <Image
                         src={product.image}
                         className="mr-2"
-                        width={35}
-                        height={35}
+                        width={64}
+                        height={64}
                         alt={`${product.name} picture`}
                       />
                     }
@@ -120,8 +120,8 @@ export default async function ProductsTable({
                   <td className="whitespace-nowrap px-3 py-3">
                     {product.image &&
                       <Image
-                        width={64}
-                        height={64}
+                        width={128}
+                        height={128}
                         alt={`${product.name} Product`}
                         // src={require('@/public/' + product.image.toString())}
                         src={product.image}

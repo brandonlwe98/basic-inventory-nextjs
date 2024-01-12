@@ -232,7 +232,7 @@ export async function generateReport(vendor: Vendor) {
         const borderAround = {bottom: {style:'thin'}, top: {style:'thin'}, left: {style:'thin'}, right: {style:'thin'}};
         sheet.mergeCells('B6:C6'); // Item No.
         sheet.mergeCells('D6:E6'); // Qty per Case/Bx
-        sheet.mergeCells('G6:H6'); // Qty CS Order
+        sheet.mergeCells('G6:H6'); // Stock on Hand
         sheet.getCell('A6').value = '#';
         sheet.getCell('A6').border = borderAround;
         sheet.getCell('B6').value = 'Item No.';
@@ -244,16 +244,19 @@ export async function generateReport(vendor: Vendor) {
         sheet.getCell('F6').value = "Item Wt. (oz/lb)"
         sheet.getCell('F6').alignment = { wrapText: true, horizontal: 'center', vertical: 'middle' };
         sheet.getCell('F6').border = borderAround;
-        sheet.getCell('G6').value = "QTY CS Order"
+        sheet.getCell('G6').value = "Stock on Hand"
         sheet.getCell('G6').alignment = { wrapText: true, horizontal: 'center', vertical: 'middle' };
         sheet.getCell('G6').border = borderAround;
+        sheet.getCell('I6').value = "Order Amount"
+        sheet.getCell('I6').alignment = { wrapText: true, horizontal: 'center', vertical: 'middle' };
+        sheet.getCell('I6').border = borderAround;
 
         // print 38 rows of items
         for (let i = 0; i < 38; i++) {
             let curRow = sheet.addRow([]);
             sheet.mergeCells(curRow.number, 2, curRow.number, 3); // Item No.
             sheet.mergeCells(curRow.number, 4, curRow.number, 5); // Qty per Case/Bx
-            sheet.mergeCells(curRow.number, 7, curRow.number, 8); // Qty CS Order
+            sheet.mergeCells(curRow.number, 7, curRow.number, 8); // Stock on Hand
 
             curRow.getCell(1).value = i + 1;
             if (i < products.rows.length) { // item details if exists
@@ -270,7 +273,7 @@ export async function generateReport(vendor: Vendor) {
                 curRow.getCell(7).value = rowValues[3];
             }
 
-            for (let i = 1; i <= 8; i++) { // border style and text-align left
+            for (let i = 1; i <= 9; i++) { // border style and text-align left
                 curRow.getCell(i).border = borderAround;
                 curRow.getCell(i).alignment = { horizontal : 'left'};
             }
@@ -295,6 +298,7 @@ export async function generateReport(vendor: Vendor) {
 
         sheet.getColumn(1).width = 9;
         sheet.getColumn(2).width = 11;
+        sheet.getColumn(9).width = 13;
 
         const currentTimestamp = Date.now();
         const fileName = `vendor_report_${currentTimestamp}.xlsx`;

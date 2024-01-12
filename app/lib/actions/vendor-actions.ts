@@ -1,15 +1,13 @@
 'use server';
  
 import { z } from 'zod';
-// import { sql } from '@vercel/postgres';
 import { revalidatePath } from 'next/cache';
 import { createDatabaseErrorMsg, formatQuantity } from '../utils';
 import { redirect } from 'next/navigation';
-// import { Product, Vendor } from '../definitions';
 import { unstable_noStore as noStore } from 'next/cache';
 import { deleteProductsByVendor } from './product-actions';
 import { pool } from '@/db.config';
-import { Product, Vendor } from '../definitions';
+import { Vendor } from '../definitions';
 import path from 'path';
 import fs from 'fs';
 
@@ -23,6 +21,7 @@ const VendorSchema = z.object({
     }),
     address: z.string(),
     phone: z.string(),
+    salesman: z.string(),
 });
 
 export type VendorState = {
@@ -43,6 +42,7 @@ export async function createVendor(prevState: VendorState, formData: FormData) {
         category: formData.get('category'),
         address: formData.get('address'),
         phone: formData.get('phone'),
+        salesman: formData.get('salesman'),
     });
 
     // If form validation fails, return errors early. Otherwise, continue.
@@ -53,7 +53,7 @@ export async function createVendor(prevState: VendorState, formData: FormData) {
         };
     }
 
-    const { vendorName, category, address, phone } = validatedFields.data;
+    const { vendorName, category, address, phone, salesman } = validatedFields.data;
 
     try {
         const existingVendor = await pool.query(`SELECT * FROM vendors WHERE name = '${vendorName}'`);
@@ -66,8 +66,8 @@ export async function createVendor(prevState: VendorState, formData: FormData) {
             };
         } else {
             await pool.query(
-                `INSERT INTO vendors (name, category, address, phone, created_at, updated_at) 
-                VALUES ('${vendorName}', ${category}, '${address}', '${phone}', localtimestamp, localtimestamp)`
+                `INSERT INTO vendors (name, category, address, phone, salesman, created_at, updated_at) 
+                VALUES ('${vendorName}', ${category}, '${address}', '${phone}', '${salesman}', localtimestamp, localtimestamp)`
             );
         }
 
@@ -107,6 +107,7 @@ export async function updateVendor(id: string, prevState: VendorState, formData:
         category: formData.get('category'),
         address: formData.get('address'),
         phone: formData.get('phone'),
+        salesman: formData.get('salesman'),
     });
 
     // If form validation fails, return errors early. Otherwise, continue.
@@ -117,7 +118,7 @@ export async function updateVendor(id: string, prevState: VendorState, formData:
         };
     }
 
-    const { vendorName, category, address, phone } = validatedFields.data;
+    const { vendorName, category, address, phone, salesman } = validatedFields.data;
 
     try {
 
@@ -140,6 +141,7 @@ export async function updateVendor(id: string, prevState: VendorState, formData:
                     category = ${category}, 
                     address = '${address}', 
                     phone='${phone}', 
+                    salesman='${salesman}',
                     updated_at = localtimestamp
                 WHERE id = ${id}
             `);

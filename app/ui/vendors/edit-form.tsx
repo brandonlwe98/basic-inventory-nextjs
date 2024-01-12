@@ -23,6 +23,7 @@ export default function EditVendorForm({
   const updateVendorWithId = updateVendor.bind(null, vendor.id);
   const [state, dispatch] = useFormState(updateVendorWithId, initialState);
 
+  console.log("VENDOR", vendor);
   const deleteVendorHandler = () => {
     if (confirm("Are you sure you want to delete this vendor? All the associated products will be removed as well."))
       deleteVendor(vendor.id)
@@ -139,7 +140,7 @@ export default function EditVendorForm({
                 className="peer block w-full rounded-md border border-gray-200 py-2 text-sm outline-2 placeholder:text-gray-500
                           disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200"
                 aria-describedby='address-error'
-                defaultValue={vendor.address}
+                defaultValue={vendor.address || ''}
                 disabled={
                   accessLevel.ADMIN === userAccess ? false : true
                 }
@@ -188,6 +189,39 @@ export default function EditVendorForm({
           </div>
         </div>
 
+        {/* {Salesman} */}
+        <div className="mb-4">
+          <label htmlFor="salesman" className="mb-2 block text-sm font-medium">
+            Salesman
+          </label>
+          <div className="relative mt-2 rounded-md">
+            <div className="relative">
+              <input
+                id="salesman"
+                name="salesman"
+                type="text"
+                placeholder="Enter Vendor Salesman"
+                className="peer block w-full rounded-md border border-gray-200 py-2 text-sm outline-2 placeholder:text-gray-500
+                          disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200"
+                aria-describedby='salesman-error'
+                defaultValue={vendor.salesman}
+                disabled={
+                  accessLevel.ADMIN === userAccess ? false : true
+                }
+              />
+            </div>
+            <div id="salesman-error" aria-live="polite" aria-atomic="true">
+              {state.errors?.salesman &&
+                state.errors.salesman.map((error: string) => (
+                  <p className="mt-2 text-sm text-red-500" key={error}>
+                    {error}
+                  </p>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        { /** {Total Products} */}
         <div className="mb-4">
           <label htmlFor="totalProducts" className="mb-2 block text-sm font-medium">
             Total Products In Inventory

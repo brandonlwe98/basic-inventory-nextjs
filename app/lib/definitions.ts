@@ -20,6 +20,7 @@ export type Vendor = {
   category: string;
   address: string;
   phone: string;
+  salesman: string;
   created_at: string;
   updated_at: string;
 };
@@ -30,6 +31,7 @@ export type VendorField = {
   category: string;
   address: string;
   phone: string;
+  salesman: string;
   created_at: string;
   updated_at: string;
 };

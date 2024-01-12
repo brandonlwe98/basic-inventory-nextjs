@@ -54,17 +54,24 @@ export default async function VendorsTable({
                 <div className="flex items-center justify-between pb-4">
                   <div>
                     <div className="mb-2 flex items-center">
-                      <p><b>Updated</b>: {formatDateToLocal(vendor.updated_at)}</p>
+                      <p><b>Salesman</b>: {vendor.salesman}</p>
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center justify-between pb-4">
                   <div>
                     <div className="mb-2 flex items-center">
-                      <p><b>Created</b>: {formatDateToLocal(vendor.created_at)}</p>
+                      <p><b>Updated</b>: {formatDateToLocal(vendor.updated_at)}</p>
                     </div>
                   </div>
                 </div>
+                {/* <div className="flex items-center justify-between pb-4">
+                  <div>
+                    <div className="mb-2 flex items-center">
+                      <p><b>Created</b>: {formatDateToLocal(vendor.created_at)}</p>
+                    </div>
+                  </div>
+                </div> */}
                 <div className="flex w-full items-center justify-between pt-4">
                   <div className="flex justify-end gap-2">
                     <UpdateVendor id={vendor.id} />
@@ -90,11 +97,14 @@ export default async function VendorsTable({
                   Phone
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
-                  Updated At
+                  Salesman
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
-                  Created At
+                  Updated At
                 </th>
+                {/* <th scope="col" className="px-3 py-5 font-medium">
+                  Created At
+                </th> */}
                 <th scope="col" className="relative py-3 pl-6 pr-3">
                   <span className="sr-only">Edit</span>
                 </th>
@@ -120,12 +130,15 @@ export default async function VendorsTable({
                   <td className="whitespace-nowrap py-3 pl-3 pr-3">
                     <p>{vendor.phone}</p>
                   </td>
+                  <td className="whitespace-nowrap py-3 pl-3 pr-3">
+                    <p>{vendor.salesman}</p>
+                  </td>
                   <td className="whitespace-wrap py-3 pl-3 pr-3">
                     <p>{formatDateToLocal(vendor.updated_at)}</p>
                   </td>
-                  <td className="whitespace-wrap py-3 pl-3 pr-3">
+                  {/* <td className="whitespace-wrap py-3 pl-3 pr-3">
                     <p>{formatDateToLocal(vendor.created_at)}</p>
-                  </td>
+                  </td> */}
                   <td className="whitespace-nowrap py-3 pl-3 pr-3">
                     <div className="flex justify-end gap-3">
                       <UpdateVendor id={vendor.id} />

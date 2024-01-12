@@ -23,7 +23,18 @@ export async function fetchVendorsPages(query: string) {
     
     try {
       const count = await pool.query(
-        "SELECT COUNT(*) FROM vendors WHERE name ILIKE $1 OR created_at::text ILIKE $1 OR updated_at::text ILIKE $1",
+        `
+        SELECT COUNT(v.*) 
+        FROM vendors v
+        JOIN categories c ON c.id = v.category
+        WHERE 
+          v.name ILIKE $1 OR 
+          c.name ILIKE $1 OR
+          v.address ILIKE $1 OR
+          v.phone ILIKE $1 OR
+          v.salesman ILIKE $1 OR
+          v.created_at::text ILIKE $1 OR 
+          v.updated_at::text ILIKE $1`,
         [`%${query}%`,]
       )
   
@@ -53,6 +64,7 @@ export async function fetchFilteredVendors(
         c.name ILIKE $1 OR
         v.address ILIKE $1 OR
         v.phone ILIKE $1 OR
+        v.salesman ILIKE $1 OR
         v.created_at::text ILIKE $1 OR 
         v.updated_at::text ILIKE $1 
         ORDER BY v.updated_at DESC LIMIT $2 OFFSET $3`,

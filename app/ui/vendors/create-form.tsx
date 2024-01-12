@@ -135,6 +135,34 @@ export default function Form({
           </div>
         </div>
 
+        {/* {Salesman} */}
+        <div className="mb-4">
+          <label htmlFor="salesman" className="mb-2 block text-sm font-medium">
+            Salesman
+          </label>
+          <div className="relative mt-2 rounded-md">
+            <div className="salesman">
+              <input
+                id="salesman"
+                name="salesman"
+                type="text"
+                placeholder="Enter Vendor Salesman"
+                className="peer block w-full rounded-md border border-gray-200 py-2 text-sm outline-2 placeholder:text-gray-500
+                          disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200"
+                aria-describedby='salesman-error'
+              />
+            </div>
+            <div id="salesman-error" aria-live="polite" aria-atomic="true">
+              {state.errors?.salesman &&
+                state.errors.salesman.map((error: string) => (
+                  <p className="mt-2 text-sm text-red-500" key={error}>
+                    {error}
+                  </p>
+              ))}
+            </div>
+          </div>
+        </div>
+
         <div
           className="flex h-8 items-end space-x-1"
           aria-live="polite"

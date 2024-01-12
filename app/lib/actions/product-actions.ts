@@ -87,24 +87,10 @@ export async function createProduct(prevState: ProductState, formData: FormData)
 
     const { productName, imageURL, vendorId, itemcode, barcode, size, stock, unit } = validatedFields.data;
 
-    // console.log("IMAGE URL", imageURL);
-    // var buffer = await Buffer.from(JSON.stringify(imageURL)); // imageURL returns a File Object
-    // const imageBlob : Blob = new Blob([imageURL], { type: imageURL.type});
-    // const imageBuffer = await imageBlob.arrayBuffer();
-    // console.log("IMG BUFFER", imageBuffer);
-    // const bytea : any = new Uint8Array(imageBuffer);
-    // console.log("BYTE ARRAY", bytea);
-
     const formattedSize = size * 100;
     const formattedStock = stock * 100;
 
     try {
-        // const res = await pool.query(
-        //     `INSERT INTO product_images (product_id, image_byte, type) VALUES (1, '${bytea.toString()}', '${imageURL.type}')
-        //     RETURNING *`
-        // );
-        // console.log(res.rows);
-        // create image path (e.g. /product_images/1/1.png)
         const imageExt = path.extname(imageURL.name);
         const uniqueImageCode = uuidv4();
 
@@ -291,23 +277,3 @@ export async function editStock(productId: string, prevState: ProductState, form
     revalidatePath('/dashboard/products');
     redirect('/dashboard/products');
 }
-
-// export async function getProductImage(id: string) {
-//     try {
-//         console.log("Retrieving product img");
-
-//         const res = await pool.query(`SELECT * from product_images WHERE id = 2`);
-
-//         const productImg : ProductImage = res.rows?.[0];
-//         console.log("Product res", productImg);
-//         console.log("RETURNING BYTEA", productImg.image_byte);
-//         // return productImg.rows[0]?.image_byte;
-//         const blob = new Blob([productImg?.image_byte], {type: productImg.type});
-//         const imgUrl = URL.createObjectURL(blob);
-//         console.log("BLOB IS ", blob);
-//         return imgUrl;
-//     } catch (error: any) {
-//         console.error(" Failed to retrieve product image from database", error);
-//         return '';
-//     }
-// }

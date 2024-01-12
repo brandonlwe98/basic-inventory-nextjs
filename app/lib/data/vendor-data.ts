@@ -9,7 +9,11 @@ export async function fetchVendors() {
     noStore();
 
     try {
-        const data = await pool.query('SELECT id, name, created_at, updated_at FROM vendors ORDER BY name ASC LIMIT 5');
+        const data = await pool.query(`
+          SELECT id, name, address, phone, salesman, category created_at, updated_at 
+          FROM vendors 
+          ORDER BY name 
+          ASC LIMIT 5`);
 
         return data.rows;
     } catch (error) {
@@ -56,7 +60,7 @@ export async function fetchFilteredVendors(
     
     try {
       const vendors = await pool.query(`
-      SELECT v.id, v.name, c.name as category, v.address, v.phone, v.created_at, v.updated_at 
+      SELECT v.id, v.name, c.name as category, v.address, v.phone, v.salesman, v.created_at, v.updated_at 
       FROM vendors v
       JOIN categories c ON c.id = v.category
       WHERE 

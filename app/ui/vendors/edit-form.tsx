@@ -23,7 +23,6 @@ export default function EditVendorForm({
   const updateVendorWithId = updateVendor.bind(null, vendor.id);
   const [state, dispatch] = useFormState(updateVendorWithId, initialState);
 
-  console.log("VENDOR", vendor);
   const deleteVendorHandler = () => {
     if (confirm("Are you sure you want to delete this vendor? All the associated products will be removed as well."))
       deleteVendor(vendor.id)

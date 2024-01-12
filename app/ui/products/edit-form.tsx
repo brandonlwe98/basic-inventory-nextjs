@@ -26,8 +26,6 @@ export default function Form(
   const [previewImage, setPreviewImage] = useState<string | null>(product.image);
   const { pending } = useFormStatus();
   
-  console.log("PRODUCT STUFF", product);
-  
   const deleteProductHandler = () => {
     if (confirm("Are you sure you want to delete this product?"))
       deleteProduct(product.id);

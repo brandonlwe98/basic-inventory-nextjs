@@ -326,7 +326,6 @@ export async function generateReport(vendor: Vendor) {
 
         await workbook.xlsx.writeFile(excelFilePath);
         const file = await fs.promises.readFile(excelFilePath.toString()).catch((err) => { if (err) throw err });
-        // console.log('excel file', file);
 
         return file;
     } catch (error) {

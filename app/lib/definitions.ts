@@ -9,9 +9,17 @@ export type User = {
   access: string;
 };
 
+export type Category = {
+  id: string;
+  name: string;
+};
+
 export type Vendor = {
   id: string;
   name: string;
+  category: string;
+  address: string;
+  phone: string;
   created_at: string;
   updated_at: string;
 };
@@ -19,6 +27,9 @@ export type Vendor = {
 export type VendorField = {
   id: string;
   name: string;
+  category: string;
+  address: string;
+  phone: string;
   created_at: string;
   updated_at: string;
 };

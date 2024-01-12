@@ -130,37 +130,37 @@ async function seedVendors() {
     }
 }
 
-async function seedCategory() {
-  try {
-    // Create the "categories" table if it doesn't exist
-    const createCategory = await pool.query(`
-      CREATE TABLE IF NOT EXISTS categories (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(255) NOT NULL UNIQUE
-      );
-    `)
+// async function seedCategory() {
+//   try {
+//     // Create the "categories" table if it doesn't exist
+//     const createCategory = await pool.query(`
+//       CREATE TABLE IF NOT EXISTS categories (
+//         id SERIAL PRIMARY KEY,
+//         name VARCHAR(255) NOT NULL UNIQUE
+//       );
+//     `)
 
-    console.log(`Created "categories" table`);
+//     console.log(`Created "categories" table`);
 
-    let categoryNames = ["Meat", "Seafood", "Fruit", "Vegetables"]
+//     let categoryNames = ["Meat", "Produce", "Vegetables"]
 
-    for (let i = 1; i <= categoryNames.length; i++) {
-      const insertedCategory = await pool.query(
-        `INSERT INTO categories (id, name) VALUES ($1, $2)`
-      , [i, categoryNames[i - 1]])
-    }
+//     for (let i = 1; i <= categoryNames.length; i++) {
+//       const insertedCategory = await pool.query(
+//         `INSERT INTO categories (id, name) VALUES ($1, $2)`
+//       , [i, categoryNames[i - 1]])
+//     }
 
-    console.log(`Successfully seeded categories!`)
+//     console.log(`Successfully seeded categories!`)
 
-    return {
-      createCategory
-    };
+//     return {
+//       createCategory
+//     };
 
-  } catch (error) {
-    console.error("Failed to seed category", error)
-    throw error;
-  }
-}
+//   } catch (error) {
+//     console.error("Failed to seed category", error)
+//     throw error;
+//   }
+// }
 
 async function seedProducts() {
     try {

@@ -5,10 +5,13 @@ import { notFound } from 'next/navigation';
 import { getVendorProductCount } from '@/app/lib/actions/vendor-actions';
 import { auth } from '@/auth';
 import { fetchUser } from '@/app/lib/data/user-data';
+import { fetchCategories } from '@/app/lib/data/category-data';
+import { Category } from '@/app/lib/definitions';
 
 export default async function Page({ params } : {params: { id: string }}) {
     const id = params.id;
     const vendor = await fetchVendorById(id);
+    const categories : Category[] = await fetchCategories();
     const totalProducts = await getVendorProductCount(id);
     const session = await auth();
     const user = await fetchUser(session?.user?.name);
@@ -29,7 +32,7 @@ export default async function Page({ params } : {params: { id: string }}) {
                 },
             ]}
             />
-            <Form vendor={vendor} totalProducts={totalProducts.toString()} userAccess={user?.access} />
+            <Form vendor={vendor} categories={categories} totalProducts={totalProducts.toString()} userAccess={user?.access} />
         </main>
     );
 }

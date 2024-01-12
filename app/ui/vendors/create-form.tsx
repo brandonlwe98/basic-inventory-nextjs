@@ -4,9 +4,14 @@ import Link from 'next/link';
 import { Button } from '@/app/ui/button';
 import { createVendor } from '@/app/lib/actions/vendor-actions';
 import { useFormState } from 'react-dom';
-import { ExclamationCircleIcon } from '@heroicons/react/24/outline';
+import { ArchiveBoxIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
+import { Category } from '@/app/lib/definitions';
 
-export default function Form() {
+export default function Form({
+  categories
+} : {
+  categories: Category[]
+}) {
   const initialState = { errorMessage: '', errors: {}};
   const [state, dispatch] = useFormState(createVendor, initialState);
 
@@ -31,6 +36,97 @@ export default function Form() {
             <div id="vendor-error" aria-live="polite" aria-atomic="true">
               {state.errors?.vendorName &&
                 state.errors.vendorName.map((error: string) => (
+                  <p className="mt-2 text-sm text-red-500" key={error}>
+                    {error}
+                  </p>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Category */}
+        <div className="mb-4">
+          <label htmlFor="category" className="mb-2 block text-sm font-medium">
+            Category
+          </label>
+          <div className="relative">
+            <select
+              id="category"
+              name="category"
+              className="peer block w-full cursor-pointer rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500
+                        disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200 "
+              aria-describedby='category-error'
+              defaultValue=""
+            >
+              <option value="" disabled>
+                Select a category
+              </option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+            <ArchiveBoxIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
+          </div>
+          <div id="category-error" aria-live="polite" aria-atomic="true">
+            {state.errors?.category &&
+              state.errors.category.map((error: string) => (
+                <p className="mt-2 text-sm text-red-500" key={error}>
+                  {error}
+                </p>
+            ))}
+          </div>
+        </div>
+
+        {/* {Address} */}
+        <div className="mb-4">
+          <label htmlFor="address" className="mb-2 block text-sm font-medium">
+            Address
+          </label>
+          <div className="relative mt-2 rounded-md">
+            <div className="relative">
+              <input
+                id="address"
+                name="address"
+                type="text"
+                placeholder="Enter Vendor Address"
+                className="peer block w-full rounded-md border border-gray-200 py-2 text-sm outline-2 placeholder:text-gray-500
+                          disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200"
+                aria-describedby='address-error'
+              />
+            </div>
+            <div id="address-error" aria-live="polite" aria-atomic="true">
+              {state.errors?.address &&
+                state.errors.address.map((error: string) => (
+                  <p className="mt-2 text-sm text-red-500" key={error}>
+                    {error}
+                  </p>
+              ))}
+            </div>
+          </div>
+        </div>
+        
+        {/* {Phone Number} */}
+        <div className="mb-4">
+          <label htmlFor="phone" className="mb-2 block text-sm font-medium">
+            Phone Number
+          </label>
+          <div className="relative mt-2 rounded-md">
+            <div className="relative">
+              <input
+                id="phone"
+                name="phone"
+                type="text"
+                placeholder="Enter Vendor Phone Number"
+                className="peer block w-full rounded-md border border-gray-200 py-2 text-sm outline-2 placeholder:text-gray-500
+                          disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200"
+                aria-describedby='phone-error'
+              />
+            </div>
+            <div id="phone-error" aria-live="polite" aria-atomic="true">
+              {state.errors?.phone &&
+                state.errors.phone.map((error: string) => (
                   <p className="mt-2 text-sm text-red-500" key={error}>
                     {error}
                   </p>

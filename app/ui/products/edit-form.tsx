@@ -34,7 +34,7 @@ export default function Form(
   }
 
   return (
-    <form action={userAccess === accessLevel.ADMIN ? dispatch : userEdit}>
+    <form action={userAccess === accessLevel.ADMIN ? dispatch : userEdit}> {/** ADMIN->dispatch/ User->edit */}
       <div className="rounded-md bg-gray-50 p-4 md:p-6">
 
         {/* {Vendor} */}
@@ -140,8 +140,8 @@ export default function Form(
                   <Image
                     alt="Preview Image Not Found"
                     className=""
-                    width={100}
-                    height={100}
+                    width={128}
+                    height={128}
                     src={previewImage}
                   />
                 </div> 

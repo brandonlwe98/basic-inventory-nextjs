@@ -18,6 +18,11 @@ const VendorSchema = z.object({
     vendorName: z.string({
         required_error: 'Please enter vendor name',
     }).min(3),
+    category: z.string({
+        invalid_type_error: 'Please select a category.',
+    }),
+    address: z.string(),
+    phone: z.string(),
 });
 
 export type VendorState = {
@@ -35,17 +40,20 @@ export async function createVendor(prevState: VendorState, formData: FormData) {
 
     const validatedFields = CreateVendor.safeParse({
         vendorName: formData.get('vendorName'),
+        category: formData.get('category'),
+        address: formData.get('address'),
+        phone: formData.get('phone'),
     });
 
     // If form validation fails, return errors early. Otherwise, continue.
     if (!validatedFields.success) {
         return {
             errors: validatedFields.error.flatten().fieldErrors,
-            errorMessage: 'Missing Fields. Failed to Create Vendor.',
+            errorMessage: 'Missing/Invalid Fields. Failed to Create Vendor.',
         };
     }
 
-    const { vendorName } = validatedFields.data;
+    const { vendorName, category, address, phone } = validatedFields.data;
 
     try {
         const existingVendor = await pool.query(`SELECT * FROM vendors WHERE name = '${vendorName}'`);
@@ -58,14 +66,15 @@ export async function createVendor(prevState: VendorState, formData: FormData) {
             };
         } else {
             await pool.query(
-                `INSERT INTO vendors (name, created_at, updated_at) VALUES ('${vendorName}', localtimestamp, localtimestamp)`
+                `INSERT INTO vendors (name, category, address, phone, created_at, updated_at) 
+                VALUES ('${vendorName}', ${category}, '${address}', '${phone}', localtimestamp, localtimestamp)`
             );
         }
 
-    } catch (error) {
+    } catch (error : any) {
         console.error("Failed to create vendor", error);
         return {
-            errorMessage: createDatabaseErrorMsg(`Failed to create vendor. Please make sure there are no special characters (/\'$!,)`),
+            errorMessage: createDatabaseErrorMsg(`Failed to create vendor (Make sure vendor name does not contain '"). ${error.message}`),
         };
     }
 
@@ -95,6 +104,9 @@ export async function updateVendor(id: string, prevState: VendorState, formData:
 
     const validatedFields = UpdateVendor.safeParse({
         vendorName: formData.get('vendorName'),
+        category: formData.get('category'),
+        address: formData.get('address'),
+        phone: formData.get('phone'),
     });
 
     // If form validation fails, return errors early. Otherwise, continue.
@@ -105,33 +117,38 @@ export async function updateVendor(id: string, prevState: VendorState, formData:
         };
     }
 
-    const { vendorName } = validatedFields.data;
+    const { vendorName, category, address, phone } = validatedFields.data;
 
     try {
 
-        const existingVendor = await pool.query(`
-        SELECT * FROM vendors
-        WHERE name = '${vendorName}'
-        `);
+        // const existingVendor = await pool.query(`
+        //     SELECT * FROM vendors
+        //     WHERE name = '${vendorName}'
+        // `);
 
-        if (existingVendor.rows.length > 0) {
-            console.log("[Update Vendor] already exists for => ", existingVendor.rows);
-            return {
-                errorMessage: 'Failed to update vendor, name already exists',
-                errors: { vendorName: ['Vendor name already exists!']}
-            };
-        } else {
+        // if (existingVendor.rows.length > 0) {
+        //     console.log("[Update Vendor] already exists for => ", existingVendor.rows);
+        //     return {
+        //         errorMessage: 'Failed to update vendor, name already exists',
+        //         errors: { vendorName: ['Vendor name already exists!']}
+        //     };
+        // } else {
             await pool.query(`
-            UPDATE vendors
-            SET name = '${vendorName}', updated_at = localtimestamp
-            WHERE id = ${id}
+                UPDATE vendors
+                SET 
+                    name = '${vendorName}', 
+                    category = ${category}, 
+                    address = '${address}', 
+                    phone='${phone}', 
+                    updated_at = localtimestamp
+                WHERE id = ${id}
             `);
-        }
+        // }
 
-    } catch (error) {
+    } catch (error : any) {
         console.error("Failed to update vendor", error);
         return {
-            errorMessage: createDatabaseErrorMsg('Failed to update vendor.')
+            errorMessage: createDatabaseErrorMsg('Failed to update vendor. ' + error.message)
         };
     }
 

@@ -44,7 +44,18 @@ export async function fetchFilteredVendors(
     noStore();
     
     try {
-      const vendors = await pool.query('SELECT id, name, created_at, updated_at FROM vendors WHERE name ILIKE $1 OR created_at::text ILIKE $1 OR updated_at::text ILIKE $1 ORDER BY updated_at DESC LIMIT $2 OFFSET $3',
+      const vendors = await pool.query(`
+      SELECT v.id, v.name, c.name as category, v.address, v.phone, v.created_at, v.updated_at 
+      FROM vendors v
+      JOIN categories c ON c.id = v.category
+      WHERE 
+        v.name ILIKE $1 OR 
+        c.name ILIKE $1 OR
+        v.address ILIKE $1 OR
+        v.phone ILIKE $1 OR
+        v.created_at::text ILIKE $1 OR 
+        v.updated_at::text ILIKE $1 
+        ORDER BY v.updated_at DESC LIMIT $2 OFFSET $3`,
       [`%${query}%`, ITEMS_PER_PAGE, offset]);
   
       return vendors.rows;
@@ -58,7 +69,11 @@ export async function fetchVendorById(id: string) {
     noStore();
     
     try {
-      const data = await pool.query('SELECT id, name, created_at, updated_at FROM vendors WHERE id = $1', [id]);
+      const data = await pool.query(`
+        SELECT *
+        FROM vendors 
+        WHERE id = $1`, 
+        [id]);
   
       return data.rows[0];
     } catch (error) {

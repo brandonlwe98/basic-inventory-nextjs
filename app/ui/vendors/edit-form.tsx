@@ -51,7 +51,7 @@ export default function EditVendorForm({
   }
 
   return (
-    <form action={dispatch}>
+    <form action={dispatch} id='formEditVendor'>
       <div className="rounded-md bg-gray-50 p-4 md:p-6">
         <div className="mb-4">
           <label htmlFor="amount" className="mb-2 block text-sm font-medium">
@@ -131,10 +131,10 @@ export default function EditVendorForm({
           </label>
           <div className="relative mt-2 rounded-md">
             <div className="relative">
-              <input
+              {/* <input
                 id="address"
                 name="address"
-                type="text"
+                type="textarea"
                 placeholder="Enter Vendor Address"
                 className="peer block w-full rounded-md border border-gray-200 py-2 text-sm outline-2 placeholder:text-gray-500
                           disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200"
@@ -143,7 +143,15 @@ export default function EditVendorForm({
                 disabled={
                   accessLevel.ADMIN === userAccess ? false : true
                 }
-              />
+              /> */}
+              <textarea name='address' id='address' form='formEditVendor' 
+                className='peer block w-full rounded-md border border-gray-200 py-2 text-sm outline-2 placeholder:text-gray-500
+                disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200 overflow-y-scroll'
+                aria-describedby='address-error'
+                defaultValue={vendor.address || ''}
+                disabled={accessLevel.ADMIN === userAccess ? false : true}
+                rows={3}
+               />
             </div>
             <div id="address-error" aria-live="polite" aria-atomic="true">
               {state.errors?.address &&

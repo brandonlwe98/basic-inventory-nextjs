@@ -3,7 +3,6 @@ import { fetchFilteredProducts } from '@/app/lib/data/product-data';
 import { DeleteProduct, UpdateProduct } from './buttons';
 import { formatQuantity } from '@/app/lib/utils';
 import { ProductTable } from '@/app/lib/definitions';
-import path from 'path';
 
 export default async function ProductsTable({
   query,
@@ -57,6 +56,17 @@ export default async function ProductsTable({
                     </p>
                     <p className="text-md font-light">
                       Current Stock: {formatQuantity(product.stock)}
+                      {/* Current Stock:
+                      <input
+                        id="stock"
+                        name="stock"
+                        type="number"
+                        step="0.01"
+                        placeholder="Enter Current Stock"
+                        className="peer block rounded-md w-16 border border-gray-200 py-2 text-sm outline-2 placeholder:text-gray-500"
+                        aria-describedby='stock-error'
+                        defaultValue={formatQuantity(product.stock)}
+                      /> */}
                     </p>
                     <p className="text-md">{product.unit}</p>
                   </div>
@@ -142,12 +152,12 @@ export default async function ProductsTable({
                   </td>
                   <td className="whitespace-nowrap px-3 py-3">
                     {/* <input
-                      id="stock"
+                      id={`stock${product.id}`}
                       name="stock"
                       type="number"
                       step="0.01"
                       placeholder="Enter Current Stock"
-                      className="peer block rounded-md w-full border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
+                      className="peer block rounded-md w-16 border border-gray-200 py-2 text-sm outline-2 placeholder:text-gray-500"
                       aria-describedby='stock-error'
                       defaultValue={formatQuantity(product.stock)}
                     /> */}

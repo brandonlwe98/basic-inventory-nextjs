@@ -37,7 +37,7 @@ async function seedCategory() {
   
       console.log(`Created "categories" table`);
   
-      let categoryNames = ["Meat", "Produce", "Grocery"]
+      let categoryNames = ["Meat", "Produce", "Grocery", "Seafood"]
   
       for (let i = 1; i <= categoryNames.length; i++) {
         const insertedCategory = await pool.query(

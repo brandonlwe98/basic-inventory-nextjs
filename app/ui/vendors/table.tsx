@@ -124,7 +124,7 @@ export default async function VendorsTable({
                   <td className="whitespace-nowrap py-3 pl-3 pr-3">
                     <p>{vendor.category}</p>
                   </td>
-                  <td className="whitespace-wrap py-3 pl-3 pr-3">
+                  <td className="whitespace-wrap py-3 pl-3 pr-3" width='20%'>
                     <p>{vendor.address}</p>
                   </td>
                   <td className="whitespace-nowrap py-3 pl-3 pr-3">

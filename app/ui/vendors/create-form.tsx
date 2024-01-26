@@ -16,7 +16,7 @@ export default function Form({
   const [state, dispatch] = useFormState(createVendor, initialState);
 
   return (
-    <form action={dispatch}>
+    <form action={dispatch} id='formCreateVendor'>
       <div className="rounded-md bg-gray-50 p-4 md:p-6">
         <div className="mb-4">
           <label htmlFor="amount" className="mb-2 block text-sm font-medium">
@@ -86,7 +86,7 @@ export default function Form({
           </label>
           <div className="relative mt-2 rounded-md">
             <div className="relative">
-              <input
+              {/* <input
                 id="address"
                 name="address"
                 type="text"
@@ -94,6 +94,12 @@ export default function Form({
                 className="peer block w-full rounded-md border border-gray-200 py-2 text-sm outline-2 placeholder:text-gray-500
                           disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200"
                 aria-describedby='address-error'
+              /> */}
+              <textarea name='address' id='address' form='formCreateVendor' 
+                className='peer block w-full rounded-md border border-gray-200 py-2 text-sm outline-2 placeholder:text-gray-500
+                disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200 overflow-y-scroll'
+                aria-describedby='address-error'
+                rows={3}
               />
             </div>
             <div id="address-error" aria-live="polite" aria-atomic="true">

@@ -7,7 +7,7 @@ const ITEMS_PER_PAGE = 6;
 
 export async function fetchVendors() {
     noStore();
-
+    
     try {
         const data = await pool.query(`
           SELECT id, name, address, phone, salesman, category created_at, updated_at 
@@ -94,6 +94,23 @@ export async function fetchVendorById(id: string) {
       return data.rows[0];
     } catch (error) {
       console.error('Database Error:', error);
-      throw new Error('Failed to fetch vendor.');
+      throw new Error('Failed to fetch vendor by id.');
     }
   }
+
+export async function fetchVendorsByCategory(category: string) {
+  noStore();
+  
+  try {
+    const data = await pool.query(`
+      SELECT *
+      FROM vendors 
+      WHERE category = $1`, 
+      [category]);
+
+    return data.rows;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch vendor by category.');
+  }
+}

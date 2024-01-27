@@ -47,7 +47,7 @@ export default async function Page({
             <div className="grid gap-6 grid-cols-2">
             {
                 vendors?.map((vendor: Vendor) => (
-                    <Link href={`/dashboard/vendors/${vendor.id}/view`}>
+                    <Link key={vendor.id} href={`/dashboard/vendors/${vendor.id}/edit`}>
                         <div className="text-white w-full">
                             <Card vendorName={vendor.name} />
                         </div>

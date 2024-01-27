@@ -18,7 +18,7 @@ export default async function Page() {
             {
                 categories?.map((category: Category) => (
                     <div>
-                        <Link href={`/dashboard/vendors/category/${category.id}`}>
+                        <Link key={category.id} href={`/dashboard/vendors/category/${category.id}`}>
                             <Card categoryName={category.name} />
                         </Link>
                     </div>

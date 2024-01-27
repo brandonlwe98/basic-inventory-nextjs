@@ -173,6 +173,7 @@ async function seedProducts() {
               image VARCHAR(255) NULL,
               itemcode VARCHAR(100) NOT NULL,
               barcode VARCHAR(100) NOT NULL,
+              quantity int NOT NULL,
               size int NOT NULL,
               stock int NOT NULL,
               unit VARCHAR(100) NOT NULL,

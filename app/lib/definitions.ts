@@ -43,6 +43,7 @@ export type Product = {
   image: string;
   itemcode: string;
   barcode: string;
+  quantity: number;
   size: number;
   stock: number;
   unit: string;
@@ -65,6 +66,7 @@ export type ProductTable = {
   image: string;
   itemcode: string;
   barcode: string;
+  quantity: number;
   size: number;
   stock: number;
   unit: string;

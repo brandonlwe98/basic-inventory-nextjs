@@ -30,6 +30,7 @@ export async function fetchProductsPages(query: string) {
           p.name ILIKE $1 OR
           p.itemcode ILIKE $1 OR
           p.barcode ILIKE $1 OR
+          p.quantity::text ILIKE $1 OR
           p.size::text ILIKE $1 OR
           p.stock::text ILIKE $1 OR
           p.unit ILIKE $1 OR
@@ -65,6 +66,7 @@ export async function fetchFilteredProducts(
           p.image,
           p.itemcode,
           p.barcode,
+          p.quantity,
           p.size,
           p.stock,
           p.unit,
@@ -77,6 +79,7 @@ export async function fetchFilteredProducts(
           v.name ILIKE $1 OR
           p.itemcode ILIKE $1 OR
           p.barcode ILIKE $1 OR
+          p.quantity::text ILIKE $1 OR
           p.size::text ILIKE $1 OR
           p.stock::text ILIKE $1 OR
           p.unit ILIKE $1 OR
@@ -112,3 +115,62 @@ export async function fetchProductById(id: string) {
       throw new Error('Failed to fetch product.');
     }
   }
+
+export async function fetchVendorProducts(id: string) {
+  try {
+    const queryString = `
+      SELECT *
+      FROM products
+      WHERE vendor_id = ${id}::varchar
+      ORDER BY id ASC`;
+
+    const data = await pool.query(queryString);
+
+    return data.rows;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch products given vendor id.');
+  }
+}
+
+export async function fetchNextProductView(id: string, vendor_id: string) {
+  // id refers to the current product id in view
+
+  try {
+    const queryString = `
+      SELECT *
+      FROM products
+      WHERE id > ${id}
+      AND vendor_id = ${vendor_id}::varchar
+      ORDER BY id ASC
+      LIMIT 1`;
+
+    const data = await pool.query(queryString);
+
+    return data.rows?.[0];
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch next product for viewing.');
+  }
+}
+
+export async function fetchPrevProductView(id: string, vendor_id: string) {
+  // id refers to the current product id in view
+
+  try {
+    const queryString = `
+      SELECT *
+      FROM products
+      WHERE id < ${id}
+      AND vendor_id = ${vendor_id}::varchar
+      ORDER BY id DESC
+      LIMIT 1`;
+
+    const data = await pool.query(queryString);
+
+    return data.rows?.[0];
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch next product for viewing.');
+  }
+}

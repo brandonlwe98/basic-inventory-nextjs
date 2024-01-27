@@ -7,7 +7,7 @@ import { deleteProduct, updateProduct, editStock } from '@/app/lib/actions/produ
 import { useFormState, useFormStatus } from 'react-dom';
 import { Product, VendorField } from '@/app/lib/definitions';
 import { UserCircleIcon, ScaleIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { accessLevel, formatDateToLocal, formatQuantity } from '@/app/lib/utils';
 
 export default function Form(
@@ -17,7 +17,7 @@ export default function Form(
     userAccess: string
   }
 ) {
-  const initialState = { errorMessage: '', errors: {}};
+  const initialState = { errorMessage: '', errors: {}, successMessage: ''};
   const updateProductWithId = updateProduct.bind(null, product.id);
   const editStockWithId = editStock.bind(null, product.id);
 
@@ -212,6 +212,40 @@ export default function Form(
           </div>
         </div>
 
+        {/* {Quantity} */}
+        <div className="mb-4">
+          <label htmlFor="quantity" className="mb-2 block text-sm font-medium">
+            Choose Product Quantity
+          </label>
+          <div className="relative mt-2 rounded-md">
+            <div className="relative">
+              <input
+                id="quantity"
+                name="quantity"
+                type="number"
+                step="0.01"
+                placeholder="Enter Product Quantity per Case"
+                className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500
+                          disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200"
+                aria-describedby='quantity-error'
+                defaultValue={formatQuantity(product.quantity)}
+                disabled={
+                  accessLevel.ADMIN === userAccess ? false : true
+                }
+              />
+              <ScaleIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
+            </div>
+            <div id="quantity-error" aria-live="polite" aria-atomic="true">
+              {state.errors?.quantity &&
+                state.errors.quantity.map((error: string) => (
+                  <p className="mt-2 text-sm text-red-500" key={error}>
+                    {error}
+                  </p>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* {Size} */}
         <div className="mb-4">
           <label htmlFor="size" className="mb-2 block text-sm font-medium">
@@ -365,6 +399,20 @@ export default function Form(
             </>
           )}
         </div>
+
+        <div
+          className="flex h-8 items-end space-x-1"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          {userState.successMessage?.trim().length > 0 && (
+            <>
+              <ExclamationCircleIcon className="h-5 w-5 text-green-500" />
+              <p className="text-sm text-green-500">{userState.successMessage}</p>
+            </>
+          )}
+        </div>
+        
       </div>
 
       <div className="mt-6 flex justify-between gap-4">
@@ -383,7 +431,7 @@ export default function Form(
               >
                 Cancel
               </Link>
-              <Button type="submit">Edit Product</Button>
+              <Button type="submit" disabled={pending}>Edit Product</Button>
             </div>
           </>
         :
@@ -394,7 +442,7 @@ export default function Form(
             >
               Cancel
             </Link>
-            <Button type="submit">Edit Product</Button>
+            <Button type="submit" disabled={pending}>Edit Product</Button>
           </>
         }
 

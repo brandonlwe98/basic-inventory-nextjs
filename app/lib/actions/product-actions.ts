@@ -33,6 +33,9 @@ const ProductSchema = z.object({
     }),
     itemcode: z.string().trim().min(1, 'Please enter itemcode value'),
     barcode: z.string().trim().min(1, 'Please enter barcode value'),
+    quantity: z.coerce
+            .number()
+            .gt(0, { message: 'Please enter quantity greater than 0.'}),
     size: z.coerce
         .number()
         .gt(0, { message: 'Please enter size greater than 0.'}),
@@ -49,6 +52,7 @@ export type ProductState = {
         vendorId?: string[];
         itemcode?: string[];
         barcode?: string[];
+        quantity?: string[];
         size?: string[];
         stock?: string[];
         unit?: string[];
@@ -59,7 +63,7 @@ export type ProductState = {
 const CreateProduct = ProductSchema.omit({ id: true });
 const UpdateProduct = ProductSchema.omit({ id: true, imageURL: true});
 const EditStock = ProductSchema.omit(
-    { id: true, imageURL: true, productName: true, vendorId: true, itemcode: true, barcode: true, size: true, unit: true}
+    { id: true, imageURL: true, productName: true, vendorId: true, itemcode: true, barcode: true, quantity: true, size: true, unit: true}
 );
 
 export async function createProduct(prevState: ProductState, formData: FormData) {
@@ -71,6 +75,7 @@ export async function createProduct(prevState: ProductState, formData: FormData)
         vendorId: formData.get('vendorId'),
         itemcode: formData.get('itemcode'),
         barcode: formData.get('barcode'),
+        quantity: formData.get('quantity'),
         size: formData.get('size'),
         stock: formData.get('stock'),
         unit: formData.get('unit'),
@@ -85,8 +90,9 @@ export async function createProduct(prevState: ProductState, formData: FormData)
         };
     }
 
-    const { productName, imageURL, vendorId, itemcode, barcode, size, stock, unit } = validatedFields.data;
+    const { productName, imageURL, vendorId, itemcode, barcode, quantity, size, stock, unit } = validatedFields.data;
 
+    const formattedQty = quantity * 100;
     const formattedSize = size * 100;
     const formattedStock = stock * 100;
 
@@ -111,12 +117,12 @@ export async function createProduct(prevState: ProductState, formData: FormData)
         );
 
         const queryString = (`
-            INSERT INTO products (vendor_id, name, image, itemcode, barcode, size, stock, unit, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, localtimestamp, localtimestamp)
+            INSERT INTO products (vendor_id, name, image, itemcode, barcode, quantity, size, stock, unit, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, localtimestamp, localtimestamp)
             RETURNING id;
         `);
 
-        await pool.query(queryString, [vendorId, productName, imagePath, itemcode, barcode, formattedSize, formattedStock, unit]);
+        await pool.query(queryString, [vendorId, productName, imagePath, itemcode, barcode, formattedQty, formattedSize, formattedStock, unit]);
     } catch (error : any) {
         console.error("Error creating product: ", error);
         return {
@@ -136,6 +142,7 @@ export async function updateProduct(id: string, prevState: ProductState, formDat
         vendorId: formData.get('vendorId'),
         itemcode: formData.get('itemcode'),
         barcode: formData.get('barcode'),
+        quantity: formData.get('quantity'),
         size: formData.get('size'),
         stock: formData.get('stock'),
         unit: formData.get('unit'),
@@ -149,7 +156,8 @@ export async function updateProduct(id: string, prevState: ProductState, formDat
         };
     }
 
-    const { productName, vendorId, itemcode, barcode, size, stock, unit } = validatedFields.data;
+    const { productName, vendorId, itemcode, barcode, quantity, size, stock, unit } = validatedFields.data;
+    const formattedQty = quantity * 100;
     const formattedSize = size * 100;
     const formattedStock = stock * 100;
 
@@ -163,11 +171,12 @@ export async function updateProduct(id: string, prevState: ProductState, formDat
                 size = $5,
                 stock = $6,
                 unit = $7,
+                quantity = $8,
                 updated_at = localtimestamp
-            WHERE id = $8
+            WHERE id = $9
         `
         await pool.query(queryString,
-                        [productName, vendorId, itemcode, barcode, formattedSize, formattedStock, unit, id]);
+                        [productName, vendorId, itemcode, barcode, formattedSize, formattedStock, unit, formattedQty, id]);
     } catch (error) {
         console.error("Failed to update product", error);
         return {
@@ -239,6 +248,7 @@ export async function deleteProductsByVendor(vendorId: string) {
 }
 
 // function that will be called only when USER access level edits stock value of product
+// OR stock is being edited on product view page
 export async function editStock(productId: string, prevState: ProductState, formData: FormData) {
     noStore();
 
@@ -252,6 +262,7 @@ export async function editStock(productId: string, prevState: ProductState, form
         return {
             errors: validatedFields.error.flatten().fieldErrors,
             errorMessage: 'Missing Fields. Failed to Create Product.',
+            successMessage: ''
         };
     }
 
@@ -270,10 +281,11 @@ export async function editStock(productId: string, prevState: ProductState, form
     } catch (error) {
         console.error("Failed to update product stock", error);
         return {
-            errorMessage: createDatabaseErrorMsg('Failed to update product stock.')
+            errorMessage: createDatabaseErrorMsg('Failed to update product stock.'),
+            successMessage: '',
         };
     }
 
     revalidatePath('/dashboard/products');
-    redirect('/dashboard/products');
+    return { errorMessage: '', successMessage: 'Successfully updated product stock'}
 }

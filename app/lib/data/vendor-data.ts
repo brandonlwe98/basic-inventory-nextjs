@@ -12,8 +12,7 @@ export async function fetchVendors() {
         const data = await pool.query(`
           SELECT id, name, address, phone, salesman, category created_at, updated_at 
           FROM vendors 
-          ORDER BY name 
-          ASC LIMIT 5`);
+          ORDER BY name ASC`);
 
         return data.rows;
     } catch (error) {

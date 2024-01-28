@@ -1,14 +1,12 @@
-import Form from '@/app/ui/vendors/edit-form';
 import Breadcrumbs from '@/app/ui/vendors/breadcrumbs';
-import { fetchVendorsByCategory, fetchVendorById } from '@/app/lib/data/vendor-data';
+import { fetchVendorById } from '@/app/lib/data/vendor-data';
 import { notFound } from 'next/navigation';
-import { getVendorProductCount } from '@/app/lib/actions/vendor-actions';
 import { auth } from '@/auth';
 import { fetchUser } from '@/app/lib/data/user-data';
 import { fetchCategory } from '@/app/lib/data/category-data';
 import { Category, Product, Vendor } from '@/app/lib/definitions';
 import Link from 'next/link';
-import { Card } from '@/app/ui/vendors/cards';
+import { Card } from '@/app/ui/products/cards';
 import { fetchVendorProducts } from '@/app/lib/data/product-data';
 import { lusitana } from '@/app/ui/fonts';
 
@@ -68,7 +66,7 @@ export default async function Page({
                             
                     }}>
                         <div className="text-white w-full">
-                            <Card vendorName={product.name} />
+                            <Card productName={product.name} />
                         </div>
                     </Link>
                 ))

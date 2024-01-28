@@ -321,12 +321,17 @@ export default function EditVendorForm({
               </div>
             </>
           :
-          <Link
-          href="/dashboard/vendors"
-          className="flex mx-2 h-10 items-center rounded-lg bg-gray-100 px-4 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200"
-          >
-            Cancel
-          </Link>
+          <>
+            <Link
+            href="/dashboard/vendors"
+            className="flex mx-2 h-10 items-center rounded-lg bg-gray-100 px-4 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200"
+            >
+              Cancel
+            </Link>
+            <Button type="button" name="btnGenerateReport" onClick={generateVendorReport} className="flex bg-yellow-500 hover:bg-yellow-400 focus:bg-yellow-600 active:bg-yellow-600 mr-2">
+              Generate Report
+            </Button>          
+          </>
         }
 
       </div>

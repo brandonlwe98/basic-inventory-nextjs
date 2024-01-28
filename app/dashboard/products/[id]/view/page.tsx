@@ -1,11 +1,10 @@
 import Form from '@/app/ui/products/view-form';
 import Breadcrumbs from '@/app/ui/vendors/breadcrumbs';
-import { fetchVendorById, fetchVendors } from '@/app/lib/data/vendor-data';
 import { notFound } from 'next/navigation';
 import { fetchNextProductView, fetchPrevProductView, fetchProductById } from '@/app/lib/data/product-data';
 import { auth } from '@/auth';
 import { fetchUser } from '@/app/lib/data/user-data';
-import { Product, Vendor } from '@/app/lib/definitions';
+import { Product } from '@/app/lib/definitions';
 import Link from 'next/link';
 
 export default async function Page(

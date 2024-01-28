@@ -2,6 +2,7 @@
 import { unstable_noStore as noStore } from 'next/cache';
 import { Product, ProductTable } from '../definitions';
 import { pool } from '@/db.config';
+import { formatDateToLocal } from '../utils';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -109,7 +110,17 @@ export async function fetchProductById(id: string) {
 
       const data = await pool.query(queryString);
       
-      return data.rows?.[0];
+      let product : Product = data.rows?.[0];
+
+      product = {
+        ...product,
+        // Convert size, qty, and stock
+        size: product.size / 100,
+        quantity: product.quantity / 100,
+        stock: product.stock / 100,
+      }
+
+      return product;
     } catch (error) {
       console.error('Database Error:', error);
       throw new Error('Failed to fetch product.');
@@ -126,7 +137,19 @@ export async function fetchVendorProducts(id: string) {
 
     const data = await pool.query(queryString);
 
-    return data.rows;
+    let products : Product[] = data.rows;
+
+    products.forEach((product : Product) => (
+      product = {
+        ...product,
+        // Convert size, qty, and stock
+        size: product.size / 100,
+        quantity: product.quantity / 100,
+        stock: product.stock / 100,
+      }
+    ))
+
+    return products;
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch products given vendor id.');

@@ -8,7 +8,9 @@ export const accessLevel = {
 }
 
 export const formatQuantity = (quantity: number) => {
-  return (quantity / 100).toLocaleString();
+  const formattedQty = (quantity / 100).toLocaleString();
+
+  return formattedQty
 };
 
 export const formatDateToLocal = (

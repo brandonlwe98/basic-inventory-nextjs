@@ -32,7 +32,7 @@ const ProductSchema = z.object({
         invalid_type_error: 'Please select a vendor.',
     }),
     itemcode: z.string().trim().min(1, 'Please enter itemcode value'),
-    barcode: z.string().trim().min(1, 'Please enter barcode value'),
+    barcode: z.string(),
     quantity: z.coerce
             .number()
             .gt(0, { message: 'Please enter quantity greater than 0.'}),
@@ -273,7 +273,8 @@ export async function editStock(productId: string, prevState: ProductState, form
     try {
         const queryString = `
             UPDATE products
-            SET stock = $1
+            SET stock = $1,
+                updated_at = localtimestamp
             WHERE id = $2
         `
         await pool.query(queryString,
@@ -287,5 +288,7 @@ export async function editStock(productId: string, prevState: ProductState, form
     }
 
     revalidatePath('/dashboard/products');
+    revalidatePath(`/dashboard/products/${productId}/view`);
+
     return { errorMessage: '', successMessage: 'Successfully updated product stock'}
 }
